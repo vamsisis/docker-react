@@ -7,5 +7,5 @@ before_install:
     - docker build -t nagavamsi/docker-react -f Dockerfile.dev .
 
 script:
-    - docker run -e CI=true nagavamsi/react-app npm run test -- --coverage
+    - docker run -e CI=true nagavamsi/docker-react npm run test
 
