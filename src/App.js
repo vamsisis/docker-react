@@ -17,7 +17,7 @@ class App extends Component {
           target="_blank"
           rel="noopener noreferrer"
         >
-          VS8
+          You have to work hard 
         </a>
         <p>Learn React</p>
       </header>
