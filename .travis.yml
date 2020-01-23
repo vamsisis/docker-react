@@ -4,8 +4,8 @@ services:
   - docker
 
 before_install:
-  - docker build -t nagavamsi/docker-react -f Dockerfile.dev .
+  - docker build -t vamsisis/docker-react -f Dockerfile.dev .
 
 script:
-  - docker run -e CI=true nagavamsi/docker-react npm run test
+  - docker run -e CI=true vamsisis/docker-react npm run test
 
