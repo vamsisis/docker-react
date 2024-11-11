@@ -1,38 +1,39 @@
-{{ define "custom.default.title" }}
-  [{{ .Status | toUpper }}] ALB Alert: {{ .Alerts.Firing | len }} firing, {{ .Alerts.Resolved | len }} resolved
-{{ end }}
+{{ define "CustomerBody" }}
+  <table>
+    <tr>
+      <th>Status</th>
+      <th>Group Labels</th>
+    </tr>
+    <tr>
+      <td>{{ .Status | toUpper }}</td>
+      <td>{{ if eq .Status "firing" }}{{ .Alerts.Firing | len }}{{ else }}{{ .Alerts.Resolved | len }}{{ end }}</td>
+    </tr>
+  </table>
 
-{{ define "custom.default.message" }}
-  {{ if gt (len .Alerts.Firing) 0 }}
-    🚨 *FIRING ALERTS* 🚨
-    {{ range .Alerts.Firing }}
-      *Alert:* {{ .Labels.alertname }}
-      *Service:* {{ .Labels.service }}
-      *Severity:* {{ .Labels.severity }}
-      *Description:* {{ .Annotations.description }}
-      *Summary:* {{ .Annotations.summary }}
-      *Time:* {{ .StartsAt }}
-      *Value:* {{ .Value }}
-      *Instance:* {{ .Labels.instance }}
+  <table border="1">
+    <tr>
+      <th>Alert Name</th>
+      <th>Current Value</th>
+      <th>Threshold</th>
+      <th>Labels</th>
+      <th>Annotations</th>
+    </tr>
+    {{ range .Alerts }}
+    <tr>
+      <td>{{ .Labels.alertname }}</td>
+      <td>{{ if .Labels.B }}{{ .Labels.B }}{{ else }}N/A{{ end }}</td>
+      <td>{{ if .Labels.C }}{{ .Labels.C }}{{ else }}N/A{{ end }}</td>
+      <td>
+        {{ range .Labels.SortedPairs }}
+          {{ .Name }} = {{ .Value }}<br/>
+        {{ end }}
+      </td>
+      <td>
+        {{ range .Annotations.SortedPairs }}
+          {{ .Name }} = {{ .Value }}<br/>
+        {{ end }}
+      </td>
+    </tr>
     {{ end }}
-  {{ end }}
-
-  {{ if gt (len .Alerts.Resolved) 0 }}
-    ✅ *RESOLVED ALERTS* ✅
-    {{ range .Alerts.Resolved }}
-      *Alert:* {{ .Labels.alertname }}
-      *Service:* {{ .Labels.service }}
-      *Severity:* {{ .Labels.severity }}
-      *Description:* {{ .Annotations.description }}
-      *Summary:* {{ .Annotations.summary }}
-      *Time Resolved:* {{ .EndsAt }}
-      *Instance:* {{ .Labels.instance }}
-    {{ end }}
-  {{ end }}
-{{ end }}
-
-{{ define "custom.default.footer" }}
-  Alert triggered by CloudWatch for ALB metrics.
-  - Dashboard: {{ .CommonLabels.dashboardLink }}
-  - Source: CloudWatch DataSource in Grafana
+  </table>
 {{ end }}
