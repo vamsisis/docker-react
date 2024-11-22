@@ -1,39 +1,22 @@
-{{ define "CustomerBody" }}
-  <table>
+<table style="border: 1px solid black; border-collapse: collapse; width: 100%;">
+  <thead>
     <tr>
-      <th>Status</th>
-      <th>Group Labels</th>
+      <th style="border: 1px solid black; padding: 8px;">Alert</th>
+      <th style="border: 1px solid black; padding: 8px;">Load Balancer</th>
+      <th style="border: 1px solid black; padding: 8px;">Metric</th>
+      <th style="border: 1px solid black; padding: 8px;">Value</th>
+      <th style="border: 1px solid black; padding: 8px;">Instance</th>
     </tr>
-    <tr>
-      <td>{{ .Status | toUpper }}</td>
-      <td>{{ if eq .Status "firing" }}{{ .Alerts.Firing | len }}{{ else }}{{ .Alerts.Resolved | len }}{{ end }}</td>
-    </tr>
-  </table>
-
-  <table border="1">
-    <tr>
-      <th>Alert Name</th>
-      <th>Current Value</th>
-      <th>Threshold</th>
-      <th>Labels</th>
-      <th>Annotations</th>
-    </tr>
+  </thead>
+  <tbody>
     {{ range .Alerts }}
     <tr>
-      <td>{{ .Labels.alertname }}</td>
-      <td>{{ if .Labels.B }}{{ .Labels.B }}{{ else }}N/A{{ end }}</td>
-      <td>{{ if .Labels.C }}{{ .Labels.C }}{{ else }}N/A{{ end }}</td>
-      <td>
-        {{ range .Labels.SortedPairs }}
-          {{ .Name }} = {{ .Value }}<br/>
-        {{ end }}
-      </td>
-      <td>
-        {{ range .Annotations.SortedPairs }}
-          {{ .Name }} = {{ .Value }}<br/>
-        {{ end }}
-      </td>
+      <td style="border: 1px solid black; padding: 8px;">{{ $.CommonLabels.alertname }}</td>
+      <td style="border: 1px solid black; padding: 8px;">{{ $.CommonLabels.loadbalancer }}</td>
+      <td style="border: 1px solid black; padding: 8px;">{{ .Labels.metric }}</td>
+      <td style="border: 1px solid black; padding: 8px;">{{ .Value }}</td>
+      <td style="border: 1px solid black; padding: 8px;">{{ .Labels.instance }}</td>
     </tr>
     {{ end }}
-  </table>
-{{ end }}
+  </tbody>
+</table>
