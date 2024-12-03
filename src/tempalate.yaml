@@ -1,7 +1,10 @@
 {{- define "email.message_alert" -}}
-Alert details:
-- {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
-- Values: {{ range $k, $v := .Values }}{{ $k }}={{ $v }} {{ end }}
+Alert:
+- Name: {{ index .Labels "alertname" }}
+- Grafana Folder: {{ index .Labels "grafana_folder" }}
+- Instance: {{ index .Labels "instance" }}
+- Threshold: {{ index .Values "threshold" }}
+- Current Value: {{ index .Values "current_value" }}
 {{- end -}}
 
 {{ define "email.message_NEW_1733234625227" }}
