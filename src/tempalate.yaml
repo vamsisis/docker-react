@@ -1,6 +1,5 @@
 {{- define "email.message_alert" -}}
-{{- range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }} has value(s)
-{{- range $k, $v := .Values }} {{ $k }}={{ $v }}{{ end }}
+{{- range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}has value(s) {{- range $k, $v := .Values }}{{ $k }}={{ $v }}{{ end -}}
 {{- end -}}
 
 {{ define "email.message_NEW_1733234625227" }}
@@ -19,5 +18,4 @@ Resolved alerts:
 - {{ template "email.message_alert" . }}
 {{- end }}
 {{- end }}
-
 {{ end }}
