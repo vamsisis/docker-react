@@ -1,5 +1,7 @@
 {{- define "email.message_alert" -}}
-{{- range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}has value(s) {{- range $k, $v := .Values }}{{ $k }}={{ $v }}{{ end -}}
+Alert details:
+- {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+- Values: {{ range $k, $v := .Values }}{{ $k }}={{ $v }} {{ end }}
 {{- end -}}
 
 {{ define "email.message_NEW_1733234625227" }}
@@ -8,14 +10,14 @@ There are {{ len .Alerts.Firing }} firing alerts, and {{ len .Alerts.Resolved }}
 {{ if .Alerts.Firing -}}
 Firing alerts:
 {{- range .Alerts.Firing }}
-- {{ template "email.message_alert" . }}
+{{ template "email.message_alert" . }}
 {{- end }}
 {{- end }}
 
 {{ if .Alerts.Resolved -}}
 Resolved alerts:
 {{- range .Alerts.Resolved }}
-- {{ template "email.message_alert" . }}
+{{ template "email.message_alert" . }}
 {{- end }}
 {{- end }}
 {{ end }}
