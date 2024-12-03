@@ -29,3 +29,8 @@ Annotations:
 {{ if gt (.Alerts.Firing | len) 0 }}🚨 {{ .Alerts.Firing | len }} firing alert(s): {{ range .Alerts.Firing }}{{ .Labels.alertname }} on {{ .Labels.LoadBalancer }}{{ break }}{{ end }}. {{ end }}
 {{ if gt (.Alerts.Resolved | len) 0 }}✅ {{ .Alerts.Resolved | len }} resolved alert(s): {{ range .Alerts.Resolved }}{{ .Labels.alertname }} on {{ .Labels.LoadBalancer }}{{ break }}{{ end }}. {{ end }}
 {{ end -}}
+======================================================
+{{ define "custom_title" -}}
+{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.alertname }}{{ end }}
+{{ if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.alertname }}{{ end }}
+{{ end -}}
