@@ -16,3 +16,8 @@ Annotations:
 {{ if eq $refID "B" }}B [Current Value] = {{ $value }}{{ else if eq $refID "C" }}C [Threshold Cross] = {{ $value }}{{ else }}{{ $refID }} = {{ $value }}{{ end }}
 {{ end -}}
 {{ else }}[no value]{{ end }}{{ end }}
+
+
+===========================================================================
+
+{{ define "loadbalancer" }}{{ .CommonLabels.alertname }}{{ end }}
