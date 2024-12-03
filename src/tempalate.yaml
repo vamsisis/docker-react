@@ -1,22 +1,23 @@
-<table style="border: 1px solid black; border-collapse: collapse; width: 100%;">
-  <thead>
-    <tr>
-      <th style="border: 1px solid black; padding: 8px;">Alert</th>
-      <th style="border: 1px solid black; padding: 8px;">Load Balancer</th>
-      <th style="border: 1px solid black; padding: 8px;">Metric</th>
-      <th style="border: 1px solid black; padding: 8px;">Value</th>
-      <th style="border: 1px solid black; padding: 8px;">Instance</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{ range .Alerts }}
-    <tr>
-      <td style="border: 1px solid black; padding: 8px;">{{ $.CommonLabels.alertname }}</td>
-      <td style="border: 1px solid black; padding: 8px;">{{ $.CommonLabels.loadbalancer }}</td>
-      <td style="border: 1px solid black; padding: 8px;">{{ .Labels.metric }}</td>
-      <td style="border: 1px solid black; padding: 8px;">{{ .Value }}</td>
-      <td style="border: 1px solid black; padding: 8px;">{{ .Labels.instance }}</td>
-    </tr>
-    {{ end }}
-  </tbody>
-</table>
+{{- define "email.message_alert" -}}
+{{- range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }} has value(s)
+{{- range $k, $v := .Values }} {{ $k }}={{ $v }}{{ end }}
+{{- end -}}
+
+{{ define "email.message_NEW_1733234625227" }}
+There are {{ len .Alerts.Firing }} firing alerts, and {{ len .Alerts.Resolved }} resolved alerts
+
+{{ if .Alerts.Firing -}}
+Firing alerts:
+{{- range .Alerts.Firing }}
+- {{ template "email.message_alert" . }}
+{{- end }}
+{{- end }}
+
+{{ if .Alerts.Resolved -}}
+Resolved alerts:
+{{- range .Alerts.Resolved }}
+- {{ template "email.message_alert" . }}
+{{- end }}
+{{- end }}
+
+{{ end }}
