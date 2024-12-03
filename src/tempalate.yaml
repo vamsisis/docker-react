@@ -1,26 +1,27 @@
-{{- define "email.message_alert" -}}
-Alert:
-- Name: {{ index .Labels "alertname" }}
-- Grafana Folder: {{ index .Labels "grafana_folder" }}
-- Instance: {{ index .Labels "instance" }}
-- Threshold: {{ index .Values "threshold" }}
-- Current Value: {{ index .Values "current_value" }}
-{{- end -}}
-
 {{ define "email.message_NEW_1733234625227" }}
 There are {{ len .Alerts.Firing }} firing alerts, and {{ len .Alerts.Resolved }} resolved alerts
 
 {{ if .Alerts.Firing -}}
 Firing alerts:
 {{- range .Alerts.Firing }}
-{{ template "email.message_alert" . }}
+Alert:
+- Name: {{ index .Labels "alertname" }}
+- Grafana Folder: {{ index .Labels "grafana_folder" }}
+- Instance: {{ index .Labels "instance" }}
+- Threshold: {{ index .Values "threshold" }}
+- Current Value: {{ index .Values "current_value" }}
 {{- end }}
 {{- end }}
 
 {{ if .Alerts.Resolved -}}
 Resolved alerts:
 {{- range .Alerts.Resolved }}
-{{ template "email.message_alert" . }}
+Alert:
+- Name: {{ index .Labels "alertname" }}
+- Grafana Folder: {{ index .Labels "grafana_folder" }}
+- Instance: {{ index .Labels "instance" }}
+- Threshold: {{ index .Values "threshold" }}
+- Current Value: {{ index .Values "current_value" }}
 {{- end }}
 {{- end }}
 {{ end }}
