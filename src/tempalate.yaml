@@ -1,24 +1,20 @@
-{{- define "email.message_alert" -}}
-Alert:
-- Name: {{ index .Labels "alertname" }}
-- Load Balancer: {{ index .Labels "loadbalancer" }}
-- Threshold: {{ index .Values "threshold" }}
-{{- end -}}
-
-{{ define "email.message" }}
-There are {{ len .Alerts.Firing }} firing alerts, and {{ len .Alerts.Resolved }} resolved alerts
-
-{{ if .Alerts.Firing -}}
-Firing alerts:
-{{- range .Alerts.Firing }}
-{{ template "email.message_alert" . }}
-{{- end }}
-{{- end }}
-
-{{ if .Alerts.Resolved -}}
-Resolved alerts:
-{{- range .Alerts.Resolved }}
-{{ template "email.message_alert" . }}
-{{- end }}
-{{- end }}
+{{ define "custom.alert_labels_and_annotations" -}}
+{{ len .Alerts.Resolved }} resolved alert(s)
+{{ range .Alerts.Resolved -}}
+  {{ template "alert.labels_and_annotations" . -}}
 {{ end }}
+{{ len .Alerts.Firing }} firing alert(s)
+{{ range .Alerts.Firing -}}
+  {{ template "alert.labels_and_annotations" . -}}
+{{ end -}}
+{{ end -}}
+{{ define "alert.labels_and_annotations" }}
+Alert labels: {{ len .Labels.SortedPairs }}
+{{ range .Labels.SortedPairs -}}
+- {{ .Name }} = {{ .Value }}
+{{ end -}}
+Alert annotations: {{ len .Annotations.SortedPairs }}
+{{ range .Annotations.SortedPairs -}}
+- {{ .Name }} = {{ .Value }}
+{{ end -}}
+{{ end -}}
