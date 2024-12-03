@@ -1,20 +1,18 @@
 {{ define "custom.alert_labels_and_annotations" -}}
 {{ len .Alerts.Resolved }} resolved alert(s)
 {{ range .Alerts.Resolved -}}
-  {{ template "alert.labels_and_annotations" . -}}
+  {{ template "alert.required_labels_and_values" . -}}
 {{ end }}
 {{ len .Alerts.Firing }} firing alert(s)
 {{ range .Alerts.Firing -}}
-  {{ template "alert.labels_and_annotations" . -}}
+  {{ template "alert.required_labels_and_values" . -}}
 {{ end -}}
 {{ end -}}
-{{ define "alert.labels_and_annotations" }}
-Alert labels: {{ len .Labels.SortedPairs }}
-{{ range .Labels.SortedPairs -}}
-- {{ .Name }} = {{ .Value }}
-{{ end -}}
-Alert annotations: {{ len .Annotations.SortedPairs }}
-{{ range .Annotations.SortedPairs -}}
-- {{ .Name }} = {{ .Value }}
-{{ end -}}
+
+{{ define "alert.required_labels_and_values" -}}
+Alert:
+- Name: {{ index .Labels "alertname" }}
+- Load Balancer: {{ index .Labels "LoadBalancer" }}
+- Summary: {{ index .Annotations "summary" }}
+- Threshold: {{ index .Values "threshold" }}
 {{ end -}}
