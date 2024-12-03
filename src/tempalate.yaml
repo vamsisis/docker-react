@@ -24,6 +24,6 @@ Annotations:
 
 
 =======================================================================
-
+{{ define "custom_title" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.alertname }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.alertname }}{{ end }}{{ end }}
 {{ define "custom_title" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.alertname }}{{ end }}{{ if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.alertname }}{{ end }}{{ end }}
 
