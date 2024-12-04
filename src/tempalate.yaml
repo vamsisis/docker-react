@@ -1,4 +1,36 @@
-{{ define "CustomerBody" }}
+{{ define "CustomerBody" -}}
+{{ if gt (len .Alerts.Firing) 0 -}}
+**Firing Alerts**
+{{ template "__text_alert_list.copy" .Alerts.Firing -}}
+{{ end -}}
+{{ if gt (len .Alerts.Resolved) 0 -}}
+**Resolved Alerts**
+{{ template "__text_alert_list.copy" .Alerts.Resolved -}}
+{{ end -}}
+{{ end -}}
+
+{{ define "__text_alert_list.copy" -}}
+{{ range . -}}
+**Alert Details:**
+- Alert Name: {{ .Labels.alertname }}
+- Load Balancer: {{ .Labels.loadbalancer }}
+{{ if .Values -}}
+- The current request count is {{ template "__text_values_list.copy" . }}
+{{ end -}}
+{{ end -}}
+{{ end -}}
+
+{{ define "__text_values_list.copy" -}}
+{{ if len .Values -}}
+{{ range $refID, $value := .Values -}}
+{{ if eq $refID "B" }}{{ $value }}{{ end -}}
+{{ end -}}
+{{ else -}}
+[No values available]
+{{ end -}}
+{{ end -}}
+
+=========================================== Working{{ define "CustomerBody" }} -======================
 {{ if gt (len .Alerts.Firing) 0 }}**Firing Alerts**
 {{ template "__text_alert_list.copy" .Alerts.Firing }}
 {{ end }}
