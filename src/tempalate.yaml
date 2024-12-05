@@ -140,3 +140,9 @@ Annotations:
 {{ if gt (.Alerts.Firing | len) 0 }}🚨 {{ .Alerts.Firing | len }} firing alerts: {{ if .CommonLabels.alertname }}{{ .CommonLabels.alertname }}{{ else }}(No alertname label){{ end }}. {{ end }}
 {{ if gt (.Alerts.Resolved | len) 0 }}✅ {{ .Alerts.Resolved | len }} resolved alerts: {{ if .CommonLabels.alertname }}{{ .CommonLabels.alertname }}{{ else }}(No alertname label){{ end }}. {{ end }}
 {{ end -}}
+
+===========================================================================================================================================================
+
+{{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.alertname }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.alertname }}{{ end }}{{ end }}
+
+
