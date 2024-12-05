@@ -161,3 +161,4 @@ Annotations:
 {{ end }}
 {{ end }}
 
+{{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.alertname }} for load balancer(s): {{ range $index, $alert := .Alerts.Firing }}{{ if $index }}, {{ end }}{{ $alert.Labels.loadbalancer }}{{ end }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.alertname }} for load balancer(s): {{ range $index, $alert := .Alerts.Resolved }}{{ if $index }}, {{ end }}{{ $alert.Labels.loadbalancer }}{{ end }}{{ end }}{{ end }}
