@@ -150,13 +150,13 @@ Annotations:
 {{ define "loadbalancer" }}
 {{ if gt (len .Alerts.Firing) 0 }}
 🚨 Firing alert(s): {{ range .Alerts.Firing }}{{ .Labels.alertname }}{{ end }} for load balancer(s): 
-{{ range .Alerts.Firing }}
-{{ .Labels.loadbalancer }}{{ if not (eq . (last . $.Alerts.Firing)) }}, {{ end }}
+{{ range $index, $alert := .Alerts.Firing }}
+{{ if $index }}, {{ end }}{{ $alert.Labels.loadbalancer }}
 {{ end }}
 {{ else if gt (len .Alerts.Resolved) 0 }}
 ✅ Resolved alert(s): {{ range .Alerts.Resolved }}{{ .Labels.alertname }}{{ end }} for load balancer(s): 
-{{ range .Alerts.Resolved }}
-{{ .Labels.loadbalancer }}{{ if not (eq . (last . $.Alerts.Resolved)) }}, {{ end }}
+{{ range $index, $alert := .Alerts.Resolved }}
+{{ if $index }}, {{ end }}{{ $alert.Labels.loadbalancer }}
 {{ end }}
 {{ end }}
 {{ end }}
