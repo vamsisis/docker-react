@@ -147,3 +147,21 @@ Annotations:
 
 {{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.alertname }} for {{ .CommonLabels.LoadBalancer}}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.alertname }} for {{ .CommonLabels.LoadBalancer}}{{ end }}{{ end }}
 
+{{ define "debug" }}
+### Debugging Alert Details ###
+- **Common Labels:** {{ .CommonLabels }}
+- **Group Labels:** {{ .GroupLabels }}
+- **External Labels:** {{ .ExternalLabels }}
+- **Status:** {{ .Status }}
+
+### Individual Alert Details ###
+{{ range .Alerts }}
+  - **Alert Name:** {{ .Labels.alertname }}
+  - **Load Balancer:** {{ .Labels.loadbalancer }}
+  - **Instance:** {{ .Labels.instance }}
+  - **Job:** {{ .Labels.job }}
+  - **Annotations:** {{ .Annotations }}
+  - **Starts At:** {{ .StartsAt }}
+  - **Ends At:** {{ .EndsAt }}
+{{ end }}
+{{ end }}
