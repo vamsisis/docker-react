@@ -2,10 +2,22 @@
 {{ if gt (len .Alerts.Firing) 0 -}}
 🚨 Firing alert(s): 
 Alert: {{ .CommonLabels.alertname }}
-Load Balancer: {{ with index .Alerts.Firing 0 -}}{{ .Labels.LoadBalancer | default "[Unknown]" }}{{ end }}
+Load Balancer: {{ with index .Alerts.Firing 0 -}}
+  {{ if .Labels.LoadBalancer -}}
+    {{ .Labels.LoadBalancer }}
+  {{ else -}}
+    [Unknown]
+  {{ end -}}
+{{ end }}
 {{ else if gt (len .Alerts.Resolved) 0 -}}
 ✅ Resolved alert(s): 
 Alert: {{ .CommonLabels.alertname }}
-Load Balancer: {{ with index .Alerts.Resolved 0 -}}{{ .Labels.LoadBalancer | default "[Unknown]" }}{{ end }}
+Load Balancer: {{ with index .Alerts.Resolved 0 -}}
+  {{ if .Labels.LoadBalancer -}}
+    {{ .Labels.LoadBalancer }}
+  {{ else -}}
+    [Unknown]
+  {{ end -}}
+{{ end }}
 {{ end -}}
 {{ end -}}
