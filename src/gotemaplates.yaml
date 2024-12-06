@@ -32,3 +32,8 @@ Resolved alert: {{ .CommonLabels.alertname }}
 Load Balancer: {{ with index .Alerts.Resolved 0 -}}{{ if .Labels.LoadBalancer -}}{{ .Labels.LoadBalancer }}{{ else }}Unknown{{ end }}{{ end }}
 {{ end -}}
 {{ end -}}
+
+
+==================================================================================================================
+{{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.LoadBalancer }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.LoadBalancer }}{{ end }}{{ end }}
+How can i add .CommonLabels.alertname 
