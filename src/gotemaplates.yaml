@@ -21,3 +21,14 @@ Load Balancer: {{ with index .Alerts.Resolved 0 -}}
 {{ end }}
 {{ end -}}
 {{ end -}}
+
+========================================================
+{{ define "loadbalancer" -}}
+{{ if gt (len .Alerts.Firing) 0 -}}
+Firing alert: {{ .CommonLabels.alertname }}
+Load Balancer: {{ with index .Alerts.Firing 0 -}}{{ if .Labels.LoadBalancer -}}{{ .Labels.LoadBalancer }}{{ else }}Unknown{{ end }}{{ end }}
+{{ else if gt (len .Alerts.Resolved) 0 -}}
+Resolved alert: {{ .CommonLabels.alertname }}
+Load Balancer: {{ with index .Alerts.Resolved 0 -}}{{ if .Labels.LoadBalancer -}}{{ .Labels.LoadBalancer }}{{ else }}Unknown{{ end }}{{ end }}
+{{ end -}}
+{{ end -}}
