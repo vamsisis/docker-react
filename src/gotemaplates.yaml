@@ -8,11 +8,11 @@
 {{ if eq .Labels.alertname "Unhealthy Host" -}}
 - Load Balancer: {{ .Labels.loadbalancer }}
 - Target Group: {{ .Labels.targetgroup }}
-- Current Value: {{ .Annotations.value }}
+- Current Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
 
 {{ else if eq .Labels.alertname "High 5XX Errors" -}}
 - Load Balancer: {{ .Labels.loadbalancer }}
-- Current Value: {{ .Annotations.value }}
+- Current Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
 
 {{ else -}}
 - Description: {{ .Annotations.description }}
