@@ -1,58 +1,24 @@
-{{ define "loadbalancer" -}}
-{{ if gt (len .Alerts.Firing) 0 -}}
-🚨 Firing alert(s): 
-Alert: {{ .CommonLabels.alertname }}
-Load Balancer: {{ with index .Alerts.Firing 0 -}}
-  {{ if .Labels.LoadBalancer -}}
-    {{ .Labels.LoadBalancer }}
-  {{ else -}}
-    [Unknown]
-  {{ end -}}
-{{ end }}
-{{ else if gt (len .Alerts.Resolved) 0 -}}
-✅ Resolved alert(s): 
-Alert: {{ .CommonLabels.alertname }}
-Load Balancer: {{ with index .Alerts.Resolved 0 -}}
-  {{ if .Labels.LoadBalancer -}}
-    {{ .Labels.LoadBalancer }}
-  {{ else -}}
-    [Unknown]
-  {{ end -}}
-{{ end }}
+{{ define "CustomerBody" -}}
+{{ if gt (len .Alerts) 0 -}}
+**Alerts**
+{{ range .Alerts -}}
+**Alert Details:**
+- Alert Name: {{ .Labels.alertname }}
+
+{{ if eq .Labels.alertname "Unhealthy Host" -}}
+- Load Balancer: {{ .Labels.loadbalancer }}
+- Target Group: {{ .Labels.targetgroup }}
+- Current Value: {{ .Annotations.value }}
+
+{{ else if eq .Labels.alertname "High 5XX Errors" -}}
+- Load Balancer: {{ .Labels.loadbalancer }}
+- Current Value: {{ .Annotations.value }}
+
+{{ else -}}
+- Description: {{ .Annotations.description }}
 {{ end -}}
 {{ end -}}
-
-========================================================
-{{ define "loadbalancer" -}}
-{{ if gt (len .Alerts.Firing) 0 -}}
-Firing alert: {{ .CommonLabels.alertname }}
-Load Balancer: {{ with index .Alerts.Firing 0 -}}{{ if .Labels.LoadBalancer -}}{{ .Labels.LoadBalancer }}{{ else }}Unknown{{ end }}{{ end }}
-{{ else if gt (len .Alerts.Resolved) 0 -}}
-Resolved alert: {{ .CommonLabels.alertname }}
-Load Balancer: {{ with index .Alerts.Resolved 0 -}}{{ if .Labels.LoadBalancer -}}{{ .Labels.LoadBalancer }}{{ else }}Unknown{{ end }}{{ end }}
+{{ else -}}
+No active alerts.
 {{ end -}}
 {{ end -}}
-
-
-==================================================================================================================
-{{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.LoadBalancer }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.LoadBalancer }}{{ end }}{{ end }}
-How can i add .CommonLabels.alertname 
-
-====================================================================================
-{{ define "loadbalancer" }}
-{{ if gt (len .Alerts.Firing) 0 }}
-Subject: 🚨 Firing alert(s): {{ .CommonLabels.alertname }} for Load Balancer: {{ .CommonLabels.loadbalancer }} | Labels: {{ printf "%+v" .CommonLabels }}
-{{ else if gt (len .Alerts.Resolved) 0 }}
-Subject: ✅ Resolved alert(s): {{ .CommonLabels.alertname }} for Load Balancer: {{ .CommonLabels.loadbalancer }} | Labels: {{ printf "%+v" .CommonLabels }}
-{{ end }}
-{{ end }}
-
-=======================================
-{{ define "loadbalancer" }}
-{{ if gt (len .Alerts.Firing) 0 }}
-Subject: 🚨 Firing alert(s): {{ printf "%s %s" .CommonLabels.loadbalancer .CommonLabels.alertname }}
-{{ else if gt (len .Alerts.Resolved) 0 }}
-Subject: ✅ Resolved alert(s): {{ printf "%s %s" .CommonLabels.loadbalancer .CommonLabels.alertname }}
-{{ end }}
-{{ end }}
-
