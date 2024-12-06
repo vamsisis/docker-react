@@ -46,3 +46,13 @@ Subject: 🚨 Firing alert(s): {{ .CommonLabels.alertname }} for Load Balancer: 
 Subject: ✅ Resolved alert(s): {{ .CommonLabels.alertname }} for Load Balancer: {{ .CommonLabels.loadbalancer }} | Labels: {{ printf "%+v" .CommonLabels }}
 {{ end }}
 {{ end }}
+
+=======================================
+{{ define "loadbalancer" }}
+{{ if gt (len .Alerts.Firing) 0 }}
+Subject: 🚨 Firing alert(s): {{ printf "%s %s" .CommonLabels.loadbalancer .CommonLabels.alertname }}
+{{ else if gt (len .Alerts.Resolved) 0 }}
+Subject: ✅ Resolved alert(s): {{ printf "%s %s" .CommonLabels.loadbalancer .CommonLabels.alertname }}
+{{ end }}
+{{ end }}
+
