@@ -37,3 +37,12 @@ Load Balancer: {{ with index .Alerts.Resolved 0 -}}{{ if .Labels.LoadBalancer -}
 ==================================================================================================================
 {{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}🚨 Firing alert(s): {{ .CommonLabels.LoadBalancer }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): {{ .CommonLabels.LoadBalancer }}{{ end }}{{ end }}
 How can i add .CommonLabels.alertname 
+
+====================================================================================
+{{ define "loadbalancer" }}
+{{ if gt (len .Alerts.Firing) 0 }}
+Subject: 🚨 Firing alert(s): {{ .CommonLabels.alertname }} for Load Balancer: {{ .CommonLabels.loadbalancer }} | Labels: {{ printf "%+v" .CommonLabels }}
+{{ else if gt (len .Alerts.Resolved) 0 }}
+Subject: ✅ Resolved alert(s): {{ .CommonLabels.alertname }} for Load Balancer: {{ .CommonLabels.loadbalancer }} | Labels: {{ printf "%+v" .CommonLabels }}
+{{ end }}
+{{ end }}
