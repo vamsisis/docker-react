@@ -1,7 +1,9 @@
 {{ define "CustomerBody" -}}
-{{ if gt (len .Alerts) 0 -}}
-**Alerts**
-{{ range .Alerts -}}
+{{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
+
+{{ if gt (len .Alerts.Firing) 0 -}}
+**Firing Alerts**
+{{ range .Alerts.Firing -}}
 **Alert Details:**
 - Alert Name: {{ .Labels.alertname }}
 
@@ -18,6 +20,29 @@
 - Description: {{ .Annotations.description }}
 {{ end -}}
 {{ end -}}
+{{ end -}}
+
+{{ if gt (len .Alerts.Resolved) 0 -}}
+**Resolved Alerts**
+{{ range .Alerts.Resolved -}}
+**Alert Details:**
+- Alert Name: {{ .Labels.alertname }}
+
+{{ if eq .Labels.alertname "Unhealthy Host" -}}
+- Load Balancer: {{ .Labels.loadbalancer }}
+- Target Group: {{ .Labels.targetgroup }}
+- Previous Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alertname "High 5XX Errors" -}}
+- Load Balancer: {{ .Labels.loadbalancer }}
+- Previous Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else -}}
+- Description: {{ .Annotations.description }}
+{{ end -}}
+{{ end -}}
+{{ end -}}
+
 {{ else -}}
 No active alerts.
 {{ end -}}
