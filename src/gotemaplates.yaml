@@ -1,4 +1,4 @@
-{{ define "CustomerBody" -}}
+{{ define "CustomBodyforAlerting" -}}
 {{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
 
 {{ if gt (len .Alerts.Firing) 0 -}}
@@ -7,34 +7,49 @@
 **Alert Details:**
 - Alert Name: {{ .Labels.alertname }}
 
-{{ if eq .Labels.alertname "Unhealthy Host" -}}
-- Load Balancer: {{ .Labels.loadbalancer }}
-- Target Group: {{ .Labels.targetgroup }}
-- Current Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+{{ if eq .Labels.alertname "unhealthyhost" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current unhealthy host Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
 
-{{ else if eq .Labels.alertname "High 5XX Errors" -}}
-- Load Balancer: {{ .Labels.loadbalancer }}
-- Current Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+{{ else if eq .Labels.alert_name "High 5XX Errors" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current 5XX Errors are : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Request Count" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Request Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Target Response Time" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Target Response Time : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
 
 {{ else -}}
 - Description: {{ .Annotations.description }}
 {{ end -}}
 {{ end -}}
 {{ end -}}
+
 {{ if gt (len .Alerts.Resolved) 0 -}}
 **Resolved Alerts**
 {{ range .Alerts.Resolved -}}
 **Alert Details:**
 - Alert Name: {{ .Labels.alertname }}
 
-{{ if eq .Labels.alertname "Unhealthy Host" -}}
-- Load Balancer: {{ .Labels.loadbalancer }}
-- Target Group: {{ .Labels.targetgroup }}
-- Previous Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+{{ if eq .Labels.alertname "unhealthyhost" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current unhealthy host Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
 
-{{ else if eq .Labels.alertname "High 5XX Errors" -}}
-- Load Balancer: {{ .Labels.loadbalancer }}
-- Previous Value: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+{{ else if eq .Labels.alert_name "High 5XX Errors" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current 5XX Errors are : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Request Count" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Request Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Target Response Time" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Target Response Time : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
 
 {{ else -}}
 - Description: {{ .Annotations.description }}
@@ -46,10 +61,3 @@
 No active alerts.
 {{ end -}}
 {{ end -}}
-
-===============================================================
-SELECT SUM(Metric) AS Errors, (SUM(Metric) / SUM(Requests)) * 100 AS ErrorPercentage
-FROM "AWS/ApplicationELB"
-WHERE MetricName IN ('HTTPCode_ELB_5XX_Count', 'RequestCount') AND LoadBalancer = 'your-load-balancer-name'
-GROUP BY LoadBalancer
-
