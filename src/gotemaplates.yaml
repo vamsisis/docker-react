@@ -21,7 +21,6 @@
 {{ end -}}
 {{ end -}}
 {{ end -}}
-
 {{ if gt (len .Alerts.Resolved) 0 -}}
 **Resolved Alerts**
 {{ range .Alerts.Resolved -}}
@@ -47,3 +46,10 @@
 No active alerts.
 {{ end -}}
 {{ end -}}
+
+===============================================================
+SELECT SUM(Metric) AS Errors, (SUM(Metric) / SUM(Requests)) * 100 AS ErrorPercentage
+FROM "AWS/ApplicationELB"
+WHERE MetricName IN ('HTTPCode_ELB_5XX_Count', 'RequestCount') AND LoadBalancer = 'your-load-balancer-name'
+GROUP BY LoadBalancer
+
