@@ -1,41 +1,14 @@
-# Define the Grafana provider
-provider "grafana" {
-  url  = "https://<YOUR-AMG-ENDPOINT>" # Replace with your AMG endpoint
-  auth = "<YOUR-API-TOKEN>"           # Replace with an API token generated in AMG
-}
-
-# Create a Grafana alert rule
-resource "grafana_alert_rule" "elb_target_response_alert" {
-  name        = "ELB_Target_Response_Alert"
-  folder_uid  = "default" # Default folder in Grafana
-  interval    = "1m"      # Alert evaluation interval
-
-  data {
-    ref_id = "A"
-    datasource_uid = "<DATASOURCE-UID>" # CloudWatch datasource UID in AMG
-    model = jsonencode({
-      "datasource" : { "type" : "cloudwatch", "uid" : "<DATASOURCE-UID>" },
-      "namespace"  : "AWS/ApplicationELB",
-      "metricName" : "TargetResponseTime",
-      "stat"       : "Average",
-      "period"     : 60,
-      "dimensions" : {
-        "LoadBalancer" : "<YOUR-LOAD-BALANCER-NAME>"
-      }
-    })
-  }
-
-  condition {
-    evaluator {
-      type  = "gt"
-      value = [1] # Threshold: Target Response Time > 1 second
-    }
-    operator = "and"
-    reducer  = "avg"
-    query    = "A"
-  }
-
-  notifications {
-    uid = "<NOTIFICATION-CHANNEL-UID>" # Replace with SNS or email channel UID
-  }
-}
+│ Error: Invalid provider configuration
+│
+│ Provider "registry.terraform.io/grafana/grafana" requires explicit configuration. Add a provider block to the root module and configure the provider's required
+│ arguments as described in the provider documentation.
+│
+╵
+╷
+│ Error: Missing required argument
+│
+│   with provider["registry.terraform.io/grafana/grafana"],
+│   on <empty> line 0:
+│   (source code not available)
+│
+│ "auth": one of `auth,cloud_api_key,oncall_access_token,sm_access_token` must be specified
