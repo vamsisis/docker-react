@@ -102,3 +102,10 @@ EOT
     }
   }
 }
+
+
+======================================================================
+
+ datasource_uid = "4h9hy3kIz"
+      model          = "{\"dimensions\":{\"LoadBalancer\":\"app/rps-vamsi-services-dfc\edcfwsxas\"},\"expression\":\"\",\"id\":\"\",\"intervalMs\":1000,\"label\":\"\",\"logGroups\":[],\"matchExact\":true,\"maxDataPoints\":43200,\"metricEditorMode\":0,\"metricName\":\"TargetResponseTime\",\"metricQueryType\":0,\"namespace\":\"AWS/ApplicationELB\",\"period\":\"\",\"queryMode\":\"Metrics\",\"refId\":\"A\",\"region\":\"default\",\"sqlExpression\":\"\",\"statistic\":\"Average\"}"
+    }
