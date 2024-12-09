@@ -1,6 +1,4 @@
 {{ define "CustomBodyforAlerting" -}}
-{{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
-
 {{ if gt (len .Alerts.Firing) 0 -}}
 **Firing Alerts**
 {{ range .Alerts.Firing -}}
@@ -28,9 +26,8 @@
 - Description: {{ .Annotations.description }}
 {{ end -}}
 {{ end -}}
-{{ end -}}
 
-{{ if gt (len .Alerts.Resolved) 0 -}}
+{{ else if gt (len .Alerts.Resolved) 0 -}}
 **Resolved Alerts**
 {{ range .Alerts.Resolved -}}
 **Alert Details:**
@@ -55,7 +52,6 @@
 
 {{ else -}}
 - Description: {{ .Annotations.description }}
-{{ end -}}
 {{ end -}}
 {{ end -}}
 
