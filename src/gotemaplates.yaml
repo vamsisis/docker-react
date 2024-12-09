@@ -1,119 +1,64 @@
+
 {{ define "CustomBodyforAlerting" -}}
 {{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th, td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .alert-header {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-top: 20px;
-        }
-        .alert-title {
-            color: #d9534f;
-            font-weight: bold;
-        }
-        .no-alerts {
-            font-size: 16px;
-            color: #888;
-        }
-    </style>
-</head>
-<body>
-
 {{ if gt (len .Alerts.Firing) 0 -}}
-    <div class="alert-header">Firing Alerts</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Alert Name</th>
-                <th>Load Balancer</th>
-                <th>Details</th>
-            </tr>
-        </thead>
-        <tbody>
-        {{ range .Alerts.Firing -}}
-            <tr>
-                <td class="alert-title">{{ .Labels.alertname }}</td>
-                <td>{{ .Labels.LoadBalancer }}</td>
-                <td>
-                    {{ if eq .Labels.alertname "unhealthyhost" -}}
-                        Current Unhealthy Host Count: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else if eq .Labels.alert_name "High 5XX Errors" -}}
-                        Current 5XX Errors: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else if eq .Labels.alert_name "High Request Count" -}}
-                        Current Request Count: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else if eq .Labels.alert_name "High Target Response Time" -}}
-                        Current Target Response Time: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else -}}
-                        Description: {{ .Annotations.description }}
-                    {{ end -}}
-                </td>
-            </tr>
-        {{ end -}}
-        </tbody>
-    </table>
+**Firing Alerts**
+{{ range .Alerts.Firing -}}
+**Alert Details:**
+- Alert Name: {{ .Labels.alert_name }}
+
+{{ if eq .Labels.alert_name "unhealthyhost" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current unhealthy host Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High 5XX Errors" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current 5XX Errors are : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Request Count" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Request Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Target Response Time" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Target Response Time : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else -}}
+- Description: {{ .Annotations.description }}
+{{ end -}}
+{{ end -}}
 {{ end -}}
 
 {{ if gt (len .Alerts.Resolved) 0 -}}
-    <div class="alert-header">Resolved Alerts</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Alert Name</th>
-                <th>Load Balancer</th>
-                <th>Details</th>
-            </tr>
-        </thead>
-        <tbody>
-        {{ range .Alerts.Resolved -}}
-            <tr>
-                <td class="alert-title">{{ .Labels.alertname }}</td>
-                <td>{{ .Labels.LoadBalancer }}</td>
-                <td>
-                    {{ if eq .Labels.alertname "unhealthyhost" -}}
-                        Current Unhealthy Host Count: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else if eq .Labels.alert_name "High 5XX Errors" -}}
-                        Current 5XX Errors: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else if eq .Labels.alert_name "High Request Count" -}}
-                        Current Request Count: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else if eq .Labels.alert_name "High Target Response Time" -}}
-                        Current Target Response Time: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-                    {{ else -}}
-                        Description: {{ .Annotations.description }}
-                    {{ end -}}
-                </td>
-            </tr>
-        {{ end -}}
-        </tbody>
-    </table>
+**Resolved Alerts**
+{{ range .Alerts.Resolved -}}
+**Alert Details:**
+- Alert Name: {{ .Labels.alert_name }}
+
+{{ if eq .Labels.alert_name "unhealthyhost" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current unhealthy host Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High 5XX Errors" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current 5XX Errors are : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Request Count" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Request Count is : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else if eq .Labels.alert_name "High Target Response Time" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Target Response Time : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+
+{{ else -}}
+- Description: {{ .Annotations.description }}
+{{ end -}}
+{{ end -}}
 {{ end -}}
 
-{{ if not (or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0)) -}}
-    <div class="no-alerts">No Active Alerts</div>
+{{ else -}}
+No active alerts.
 {{ end -}}
-
-</body>
-</html>
 {{ end -}}
