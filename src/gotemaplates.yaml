@@ -1,6 +1,8 @@
 severity
 {{if gt $values.B.Value 2.0 }}critical{{else}}warning{{end}}
 
+{{ if ge $values.B.Value 1.5 }}critical_urgent{{ else if ge $values.B.Value 1.2 }}critical{{ else if ge $values.B.Value 0.8 }}warning{{ else }}info{{ end }}
+
 
 {{ else if eq .Labels.alert_name "High Target Response Time" -}}
 - Load Balancer: {{ .Labels.LoadBalancer }}
