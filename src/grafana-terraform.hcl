@@ -13,7 +13,7 @@
 - Load Balancer: {{ .Labels.LoadBalancer }}
 {{ $totalRequests := index .Values "total_requests" }}
 {{ $errorCount := index .Values "5xx_errors" }}
-{{ $errorRate := (mul (div $errorCount $totalRequests) 100) | printf "%.2f" }}
+{{ $errorRate := printf "%.2f" (div (float64 $errorCount) (float64 $totalRequests) | multiply 100) }}
 {{ if gt (float64 $errorRate) 10.0 -}}
 - Current 5XX Error Rate: {{ $errorRate }}% (Above Threshold)
 {{ else -}}
@@ -48,7 +48,7 @@
 - Load Balancer: {{ .Labels.LoadBalancer }}
 {{ $totalRequests := index .Values "total_requests" }}
 {{ $errorCount := index .Values "5xx_errors" }}
-{{ $errorRate := (mul (div $errorCount $totalRequests) 100) | printf "%.2f" }}
+{{ $errorRate := printf "%.2f" (div (float64 $errorCount) (float64 $totalRequests) | multiply 100) }}
 - Current 5XX Error Rate: {{ $errorRate }}%
 
 {{ else if eq .Labels.alert_name "High Request Count" -}}
