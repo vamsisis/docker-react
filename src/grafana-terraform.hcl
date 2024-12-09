@@ -1,3 +1,17 @@
+
+{{ define "HighTargetResponseTimeBody" -}}
+**Alert Details:**
+- Alert Name: High Target Response Time
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Target Response Time : {{ if .Values }}{{ range $refID, $value := .Values -}}{{ $value }}{{ end }}{{ else }}(Value unavailable){{ end }}
+{{ if .Values }}
+- Severity: {{ if ge (index .Values "B") 1.5 }}Critical (Urgent){{ else if ge (index .Values "B") 1.2 }}Critical{{ else if ge (index .Values "B") 0.8 }}Warning{{ else }}Info{{ end }}
+{{ else }}
+- Severity: (Severity unavailable)
+{{ end }}
+{{ end -}}
+
+=======================================================================================
 {{ define "CustomBodyforAlerting" -}}
 {{ if gt (len .Alerts.Firing) 0 -}}
 **Firing Alerts**
