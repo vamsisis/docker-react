@@ -1,6 +1,12 @@
 severity
 {{if gt $values.B.Value 2.0 }}critical{{else}}warning{{end}}
 
+
+{{ else if eq .Labels.alert_name "High Target Response Time" -}}
+- Load Balancer: {{ .Labels.LoadBalancer }}
+- Current Target Response Time : {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+- Severity: {{ if gt (index .Values "B") 2.0 }}Critical{{ else }}Warning{{ end }}
+
 ==========================================================================================
 {{ define "CustomBodyforAlerting" -}}
 {{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
