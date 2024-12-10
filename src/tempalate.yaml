@@ -1,8 +1,8 @@
 {{ define "custom_title" }}
 {{ if gt (len .Alerts.Firing) 0 }} 
-🚨 Firing alert(s): Critical: 5XX Errors Above Threshold ({{ index .Values "C" }}%) 
+🚨 Firing alert(s): Critical: 5XX Errors Above Threshold ({{ index .Alerts.Firing 0 "Value" }})
 {{ else if gt (len .Alerts.Resolved) 0 }} 
-✅ Resolved alert(s): 5XX Errors ({{ index .Values "C" }}%) Restored to Normal
+✅ Resolved alert(s): 5XX Errors Restored to Normal ({{ index .Alerts.Resolved 0 "Value" }})
 {{ end }}
 {{ end }}
 
