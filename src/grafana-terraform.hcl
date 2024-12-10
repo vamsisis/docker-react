@@ -7,9 +7,10 @@
 **Alert Details:**
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
 
-{{ $totalRequests := index .Values "total_requests" }}
-{{ $errorCount := index .Values "5xx_errors" }}
-{{ $errorRate := printf "%.2f" (div (float64 $errorCount) (float64 $totalRequests) | multiply 100) }}
+{{ $totalRequests := float64 (index .Values "total_requests") }}
+{{ $errorCount := float64 (index .Values "5xx_errors") }}
+
+{{ $errorRate := printf "%.2f" (mul (div $errorCount $totalRequests) 100) }}
 
 {{ if gt (float64 $errorRate) 10.0 -}}
 - **Current 5XX Error Rate**: 🚨 {{ $errorRate }}% (Above Threshold)
@@ -29,9 +30,10 @@
 **Alert Details:**
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
 
-{{ $totalRequests := index .Values "total_requests" }}
-{{ $errorCount := index .Values "5xx_errors" }}
-{{ $errorRate := printf "%.2f" (div (float64 $errorCount) (float64 $totalRequests) | multiply 100) }}
+{{ $totalRequests := float64 (index .Values "total_requests") }}
+{{ $errorCount := float64 (index .Values "5xx_errors") }}
+
+{{ $errorRate := printf "%.2f" (mul (div $errorCount $totalRequests) 100) }}
 
 - **Resolved 5XX Error Rate**: {{ $errorRate }}%
 - **Status**: Resolved ✅
