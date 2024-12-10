@@ -6,19 +6,7 @@
 {{ if eq .Labels.alert_name "High 5XX Errors" -}}
 **Alert Details:**
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-
-{{ $totalRequests := float64 (index .Values "total_requests") }}
-{{ $errorCount := float64 (index .Values "5xx_errors") }}
-
-{{ $errorRate := printf "%.2f" (mul (div $errorCount $totalRequests) 100) }}
-
-{{ if gt (float64 $errorRate) 10.0 -}}
-- **Current 5XX Error Rate**: 🚨 {{ $errorRate }}% (Above Threshold)
-- **Severity**: Critical (Error rate > 10%)
-{{ else -}}
-- **Current 5XX Error Rate**: ✅ {{ $errorRate }}% (Within Threshold)
-- **Severity**: Warning (Error rate <= 10%)
-{{ end }}
+- **Current 5XX Error Rate**: 🚨 {{ index .Values "C" }}% (Above Threshold)
 {{ end -}}
 {{ end -}}
 
@@ -29,13 +17,7 @@
 {{ if eq .Labels.alert_name "High 5XX Errors" -}}
 **Alert Details:**
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-
-{{ $totalRequests := float64 (index .Values "total_requests") }}
-{{ $errorCount := float64 (index .Values "5xx_errors") }}
-
-{{ $errorRate := printf "%.2f" (mul (div $errorCount $totalRequests) 100) }}
-
-- **Resolved 5XX Error Rate**: {{ $errorRate }}%
+- **Resolved 5XX Error Rate**: {{ index .Values "C" }}%
 - **Status**: Resolved ✅
 {{ end -}}
 {{ end -}}
