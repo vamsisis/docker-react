@@ -6,7 +6,7 @@
 {{ if eq .Labels.alert_name "High 5XX Errors" -}}
 **Alert Details:**
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Current 5XX Error Rate**: 🚨 {{ index .Values "C" }}% (Above Threshold)
+- **Current 5XX Error Rate**: 🚨 {{ index .Values "E" }}% (Above Threshold)
 {{ end -}}
 {{ end -}}
 
@@ -17,7 +17,7 @@
 {{ if eq .Labels.alert_name "High 5XX Errors" -}}
 **Alert Details:**
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved 5XX Error Rate**: {{ index .Values "C" }}%
+- **Resolved 5XX Error Rate**: {{ index .Values "E" }}%
 - **Status**: Resolved ✅
 {{ end -}}
 {{ end -}}
