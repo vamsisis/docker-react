@@ -27,6 +27,47 @@ No active 5XX alerts at the moment.
 {{ end -}}
 {{ end -}}
 
+================================== with inf value
+
+{{ define "CustomBodyfor5XXAlerting" -}}
+{{ if gt (len .Alerts.Firing) 0 -}}
+**🚨 Firing 5XX Alerts 🚨**
+
+{{ range .Alerts.Firing -}}
+{{ if eq .Labels.alert_name "High 5XX Errors" -}}
+**Alert Details:**
+- **Load Balancer**: {{ .Labels.LoadBalancer }}
+- **Current 5XX Error Rate**: 🚨 
+  {{ if or (eq (index .Values "E") "NaN") (eq (index .Values "E") "Inf") (eq (index .Values "E") "+Inf") (eq (index .Values "E") "-Inf") }}
+    🚨 Error Rate: Invalid (Division by zero or no requests)
+  {{ else }}
+    {{ index .Values "E" }}% (Above Threshold)
+  {{ end }}
+{{ end -}}
+{{ end -}}
+
+{{ else if gt (len .Alerts.Resolved) 0 -}}
+**✅ Resolved 5XX Alerts ✅**
+
+{{ range .Alerts.Resolved -}}
+{{ if eq .Labels.alert_name "High 5XX Errors" -}}
+**Alert Details:**
+- **Load Balancer**: {{ .Labels.LoadBalancer }}
+- **Resolved 5XX Error Rate**: 
+  {{ if or (eq (index .Values "E") "NaN") (eq (index .Values "E") "Inf") (eq (index .Values "E") "+Inf") (eq (index .Values "E") "-Inf") }}
+    🚨 Error Rate: Invalid (Division by zero or no requests)
+  {{ else }}
+    {{ index .Values "E" }}%
+  {{ end }}
+- **Status**: Resolved ✅
+{{ end -}}
+{{ end -}}
+
+{{ else -}}
+No active 5XX alerts at the moment.
+{{ end -}}
+{{ end -}}
+
 
 ======================================================================
 
