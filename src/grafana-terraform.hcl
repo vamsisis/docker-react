@@ -1,3 +1,53 @@
+infinity value-=========================================
+
+{{ define "CustomBodyfor5XXAlerting" -}}
+{{ if gt (len .Alerts.Firing) 0 -}}
+**🚨 Firing 5XX Alerts 🚨**
+
+{{ range .Alerts.Firing -}}
+{{ if eq .Labels.alert_name "High 5XX Errors" -}}
+  {{ $currentValue := index .Values "C" }}
+  {{ if eq $currentValue "inf" }}
+    **Alert Details:**
+    - **Load Balancer**: {{ .Labels.LoadBalancer }}
+    - **Current 5XX Error Rate**: 🚨 Infinity (Value is too high to measure)
+  {{ else }}
+    **Alert Details:**
+    - **Load Balancer**: {{ .Labels.LoadBalancer }}
+    - **Current 5XX Error Rate**: 🚨 {{ $currentValue }}% (Above Threshold)
+  {{ end }}
+{{ end -}}
+{{ end -}}
+
+{{ else if gt (len .Alerts.Resolved) 0 -}}
+**✅ Resolved 5XX Alerts ✅**
+
+{{ range .Alerts.Resolved -}}
+{{ if eq .Labels.alert_name "High 5XX Errors" -}}
+  {{ $resolvedValue := index .Values "C" }}
+  {{ if eq $resolvedValue "inf" }}
+    **Alert Details:**
+    - **Load Balancer**: {{ .Labels.LoadBalancer }}
+    - **Resolved 5XX Error Rate**: Infinity (Value was too high to measure)
+    - **Status**: Resolved ✅
+  {{ else }}
+    **Alert Details:**
+    - **Load Balancer**: {{ .Labels.LoadBalancer }}
+    - **Resolved 5XX Error Rate**: {{ $resolvedValue }}%
+    - **Status**: Resolved ✅
+  {{ end }}
+{{ end -}}
+{{ end -}}
+
+{{ else -}}
+No active 5XX alerts at the moment.
+{{ end -}}
+{{ end -}}
+
+===============================================================
+
+
+
 {{ define "CustomBodyfor5XXAlerting" -}}
 {{ if gt (len .Alerts.Firing) 0 -}}
 **🚨 Firing 5XX Alerts 🚨**
