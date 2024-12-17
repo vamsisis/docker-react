@@ -1,4 +1,3 @@
-
 {{ define "CustomBodyforAlerting" -}}
 {{ if gt (len .Alerts.Firing) 0 -}}
 **Firing Alerts**
@@ -9,18 +8,15 @@
 
 {{ if eq .Labels.alert_name "unhealthyhost" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Current Unhealthy Host Count**: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+- **Current Unhealthy Host Count**: {{ .ValueString }}
 
 {{ else if eq .Labels.alert_name "High Request Count" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Current Request Count**: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+- **Current Request Count**: {{ .ValueString }}
 
 {{ else if eq .Labels.alert_name "High Target Response Time" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Current Target Response Time**: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-- **Severity**: 
-  {{ if ge (index .Values "B") 1.5 }}Critical (Urgent){{ else if ge (index .Values "B") 1.2 }}Critical{{ else if ge (index .Values "B") 0.8 }}Warning{{ else }}Info{{ end }}
-
+- **Current Target Response Time**: {{ .ValueString }}
 {{ end -}}
 {{ end -}}
 {{ end -}}
@@ -34,18 +30,15 @@
 
 {{ if eq .Labels.alert_name "unhealthyhost" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved Unhealthy Host Count**: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+- **Resolved Unhealthy Host Count**: {{ .ValueString }}
 
 {{ else if eq .Labels.alert_name "High Request Count" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved Request Count**: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
+- **Resolved Request Count**: {{ .ValueString }}
 
 {{ else if eq .Labels.alert_name "High Target Response Time" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved Target Response Time**: {{ range $refID, $value := .Values -}}{{ $value }}{{ end }}
-- **Severity**: 
-  {{ if ge (index .Values "B") 1.5 }}Critical (Urgent){{ else if ge (index .Values "B") 1.2 }}Critical{{ else if ge (index .Values "B") 0.8 }}Warning{{ else }}Info{{ end }}
-
+- **Resolved Target Response Time**: {{ .ValueString }}
 {{ end -}}
 {{ end -}}
 {{ end -}}
