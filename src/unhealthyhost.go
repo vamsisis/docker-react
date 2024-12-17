@@ -30,15 +30,15 @@
 
 {{ if eq .Labels.alert_name "unhealthyhost" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved Unhealthy Host Count**: {{ .ValueString }}
+- **Resolved Unhealthy Host Count**: {{ if .ValueString }}{{ .ValueString }}{{ else }}0{{ end }}
 
 {{ else if eq .Labels.alert_name "High Request Count" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved Request Count**: {{ .ValueString }}
+- **Resolved Request Count**: {{ if .ValueString }}{{ .ValueString }}{{ else }}0{{ end }}
 
 {{ else if eq .Labels.alert_name "High Target Response Time" -}}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved Target Response Time**: {{ .ValueString }}
+- **Resolved Target Response Time**: {{ if .ValueString }}{{ .ValueString }}{{ else }}0{{ end }}
 {{ end -}}
 {{ end -}}
 {{ end -}}
