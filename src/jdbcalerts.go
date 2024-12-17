@@ -14,10 +14,13 @@
 **Alert Details:**
 - Alert Name: {{ .Labels.alert_name }}
 - Job Name: {{ .Labels.job }}
-- JDBC Connection Usage: {{ .Value }}%
+- JDBC Connection Usage: {{ index .Annotations "usage" }}%
 
-{{ else -}}
-- Description: {{ .Annotations.description }}
+**Debug Information:**
+- All Labels:
+{{ range $key, $value := .Labels -}}
+  - {{ $key }}: {{ $value }}
+{{ end -}}
 {{ end -}}
 {{ end -}}
 
@@ -27,14 +30,21 @@
 **Alert Details:**
 - Alert Name: {{ .Labels.alert_name }}
 - Job Name: {{ .Labels.job }}
-- JDBC Connection Usage: {{ .Value }}%
+- JDBC Connection Usage: {{ index .Annotations "usage" }}%
+
+**Debug Information:**
+- All Labels:
+{{ range $key, $value := .Labels -}}
+  - {{ $key }}: {{ $value }}
+{{ end -}}
+{{ end -}}
+{{ end -}}
 
 {{ else -}}
-- Description: {{ .Annotations.description }}
+No active alerts.
 {{ end -}}
 {{ end -}}
 
-{{ else -}}
 No active alerts.
 {{ end -}}
 {{ end -}}
