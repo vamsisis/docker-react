@@ -4,7 +4,8 @@
 {{ end }}
 
 =============================================================
-
+JDBC Connection Usage: [ var='A' labels={http_scheme=http, instance=0.0.0.0:33501, job=rps-rem-services-svcgr, name=db2, net_host_port=33501, service_instance_id=0.0.0.0:33501, service_name=rps-rem-services-svcgr} value=4 ], [ var='C' labels={http_scheme=http, instance=0.0.0.0:33501, job=rps-rem-services-svcgr, name=db2, net_host_port=33501, service_instance_id=0.0.0.0:33501, service_name=rps-rem-services-svcgr} value=1 ]%
+===============================================================================
 {{ define "CustomBodyforAlerting" -}}
 {{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
 
