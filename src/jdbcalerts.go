@@ -4,8 +4,6 @@
 {{ end }}
 
 =============================================================
-JDBC Connection Usage: [ var='A' labels={http_scheme=http, instance=0.0.0.0:33501, job=rps-rem-services-svcgr, name=db2, net_host_port=33501, service_instance_id=0.0.0.0:33501, service_name=rps-rem-services-svcgr} value=4 ], [ var='C' labels={http_scheme=http, instance=0.0.0.0:33501, job=rps-rem-services-svcgr, name=db2, net_host_port=33501, service_instance_id=0.0.0.0:33501, service_name=rps-rem-services-svcgr} value=1 ]%
-===============================================================================
 {{ define "CustomBodyforAlerting" -}}
 {{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
 
@@ -15,15 +13,23 @@ JDBC Connection Usage: [ var='A' labels={http_scheme=http, instance=0.0.0.0:3350
 **Alert Details:**
 - Alert Name: {{ .Labels.alert_name }}
 - Job Name: {{ .Labels.job }}
-- JDBC Connection Usage: {{ index .Annotations "usage" }}%
+
+{{ if .Values }}
+- JDBC Connection Usage:
+{{ range $refID, $value := .Values }}
+  - {{ $refID }}: {{ $value }}%
+{{ end }}
+{{ else }}
+- JDBC Connection Usage: Not Available
+{{ end }}
 
 **Debug Information:**
 - All Labels:
-{{ range $key, $value := .Labels -}}
+{{ range $key, $value := .Labels }}
   - {{ $key }}: {{ $value }}
-{{ end -}}
-{{ end -}}
-{{ end -}}
+{{ end }}
+{{ end }}
+{{ end }}
 
 {{ if gt (len .Alerts.Resolved) 0 -}}
 **Resolved Alerts**
@@ -31,21 +37,25 @@ JDBC Connection Usage: [ var='A' labels={http_scheme=http, instance=0.0.0.0:3350
 **Alert Details:**
 - Alert Name: {{ .Labels.alert_name }}
 - Job Name: {{ .Labels.job }}
-- JDBC Connection Usage: {{ index .Annotations "usage" }}%
+
+{{ if .Values }}
+- JDBC Connection Usage:
+{{ range $refID, $value := .Values }}
+  - {{ $refID }}: {{ $value }}%
+{{ end }}
+{{ else }}
+- JDBC Connection Usage: Not Available
+{{ end }}
 
 **Debug Information:**
 - All Labels:
-{{ range $key, $value := .Labels -}}
+{{ range $key, $value := .Labels }}
   - {{ $key }}: {{ $value }}
-{{ end -}}
-{{ end -}}
-{{ end -}}
+{{ end }}
+{{ end }}
+{{ end }}
 
 {{ else -}}
 No active alerts.
-{{ end -}}
-{{ end -}}
-
-No active alerts.
-{{ end -}}
-{{ end -}}
+{{ end }}
+{{ end }}
