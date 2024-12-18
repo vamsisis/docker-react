@@ -3,6 +3,26 @@
   {{ if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s): JDBC Connection Usage Alert: {{ .CommonLabels.alert_name }} - {{ .CommonLabels.job }} - {{ .CommonLabels.value }}%{{ end }}
 {{ end }}
 
+================================
+==================================>**Firing Alerts**
+**Alert Details:**
+- Alert Name: 
+- Job Name: 
+
+
+- JDBC Connection Usage: 
+  
+    22%  
+    
+
+
+
+
+
+
+
+<==================================
+
 =============================================================
 
 {{ define "CustomBodyforAlerting" -}}
