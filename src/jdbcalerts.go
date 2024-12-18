@@ -4,6 +4,7 @@
 {{ end }}
 
 =============================================================
+
 {{ define "CustomBodyforAlerting" -}}
 {{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
 
@@ -15,10 +16,11 @@
 - Job Name: {{ .Labels.job }}
 
 {{ if .Values }}
-- JDBC Connection Usage:
-{{ range $refID, $value := .Values }}
-  - {{ $refID }}: {{ $value }}%
-{{ end }}
+- JDBC Connection Usage: 
+  {{ range $refID, $value := .Values }}
+    {{ $value }}%
+    {{ break }}  {{/* Only prints the first value */}}
+  {{ end }}
 {{ else }}
 - JDBC Connection Usage: Not Available
 {{ end }}
@@ -39,10 +41,11 @@
 - Job Name: {{ .Labels.job }}
 
 {{ if .Values }}
-- JDBC Connection Usage:
-{{ range $refID, $value := .Values }}
-  - {{ $refID }}: {{ $value }}%
-{{ end }}
+- JDBC Connection Usage: 
+  {{ range $refID, $value := .Values }}
+    {{ $value }}%
+    {{ break }}  {{/* Only prints the first value */}}
+  {{ end }}
 {{ else }}
 - JDBC Connection Usage: Not Available
 {{ end }}
@@ -59,3 +62,4 @@
 No active alerts.
 {{ end }}
 {{ end }}
+
