@@ -4,24 +4,43 @@
 {{ end }}
 
 ================================
-==================================>**Firing Alerts**
+{{ define "CustomBodyforAlerting" -}}
+{{ if or (gt (len .Alerts.Firing) 0) (gt (len .Alerts.Resolved) 0) -}}
+
+{{ if gt (len .Alerts.Firing) 0 -}}
+**Firing Alerts**
+{{ range .Alerts.Firing -}}
 **Alert Details:**
-- Alert Name: 
-- Job Name: 
+- Alert Name: {{ .Labels.alert_name }}
+- Job Name: {{ .Labels.job }}
 
+{{ if .Annotations.usage }}
+- JDBC Connection Usage: {{ .Annotations.usage }}%
+{{ else }}
+- JDBC Connection Usage: Not Available
+{{ end }}
+{{ end }}
+{{ end }}
 
-- JDBC Connection Usage: 
-  
-    22%  
-    
+{{ if gt (len .Alerts.Resolved) 0 -}}
+**Resolved Alerts**
+{{ range .Alerts.Resolved -}}
+**Alert Details:**
+- Alert Name: {{ .Labels.alert_name }}
+- Job Name: {{ .Labels.job }}
 
+{{ if .Annotations.usage }}
+- JDBC Connection Usage: {{ .Annotations.usage }}%
+{{ else }}
+- JDBC Connection Usage: Not Available
+{{ end }}
+{{ end }}
+{{ end }}
 
-
-
-
-
-
-<==================================
+{{ else -}}
+No active alerts.
+{{ end }}
+{{ end }}
 
 =============================================================
 
