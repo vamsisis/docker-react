@@ -18,17 +18,11 @@
 {{ if .Values }}
 - JDBC Connection Usage: 
   {{ range $refID, $value := .Values }}
-    {{ $value }}%
-    {{ break }}  {{/* Only prints the first value */}}
+    {{ $value }}%  {{/* Only prints the first value with a '%' */}}
+    {{ break }}  
   {{ end }}
 {{ else }}
 - JDBC Connection Usage: Not Available
-{{ end }}
-
-**Debug Information:**
-- All Labels:
-{{ range $key, $value := .Labels }}
-  - {{ $key }}: {{ $value }}
 {{ end }}
 {{ end }}
 {{ end }}
@@ -43,17 +37,11 @@
 {{ if .Values }}
 - JDBC Connection Usage: 
   {{ range $refID, $value := .Values }}
-    {{ $value }}%
-    {{ break }}  {{/* Only prints the first value */}}
+    {{ $value }}%  {{/* Only prints the first value with a '%' */}}
+    {{ break }}  
   {{ end }}
 {{ else }}
 - JDBC Connection Usage: Not Available
-{{ end }}
-
-**Debug Information:**
-- All Labels:
-{{ range $key, $value := .Labels }}
-  - {{ $key }}: {{ $value }}
 {{ end }}
 {{ end }}
 {{ end }}
