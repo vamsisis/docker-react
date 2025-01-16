@@ -18,3 +18,23 @@ ecs_task_network_rate_tx_Bytes_per_Second
 ecs_task_storage_read_bytes_Bytes
 ecs_task_storage_write_bytes_Bytes
 
+# Availabe Labels
+
+aws_ecs_cluster_name
+aws_ecs_container_created_at
+aws_ecs_container_exit_code
+aws_ecs_container_finished_at
+aws_ecs_container_image_id
+aws_ecs_container_know_status
+aws_ecs_container_started_at
+aws_ecs_docker_name
+aws_ecs_launchtype
+aws_ecs_task_arn
+aws_ecs_task_family
+aws_ecs_task_id
+aws_ecs_task_known_status
+aws_ecs_task_launch_type
+aws_ecs_task_pull_started_at
+aws_ecs_task_pull_stopped_at
+aws_ecs_task_revision
+aws_ecs_task_version
