@@ -51,3 +51,7 @@ container_cpu_usage_kernelmode_Nanosecondscontainer_cpu_onlines_Countcontainer_c
 
 
 aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -c 'echo "Cluster: {}"; aws ecs list-tasks --cluster {} --query "taskArns" --output text | grep . || echo "  No running tasks in this cluster"'
+
+
+aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -c 'if [ -z "$(aws ecs list-tasks --cluster {} --query "taskArns" --output text)" ]; then echo {}; fi'
+
