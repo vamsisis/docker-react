@@ -55,3 +55,31 @@ aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -
 
 aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -c 'if [ -z "$(aws ecs list-tasks --cluster {} --query "taskArns" --output text)" ]; then echo {}; fi'
 
+
+import boto3
+
+def check_clusters(region):
+    client = boto3.client("ecs", region_name=region)
+    
+    # Get all clusters
+    clusters = client.list_clusters()["clusterArns"]
+    if not clusters:
+        print(f"No ECS clusters found in region {region}.")
+        return
+    
+    for cluster in clusters:
+        print(f"Checking cluster: {cluster}")
+        
+        # Get running tasks
+        tasks = client.list_tasks(cluster=cluster)["taskArns"]
+        if not tasks:
+            print(f"  No running tasks in cluster {cluster}.")
+        else:
+            print(f"  Running tasks found in cluster {cluster}:")
+            for task in tasks:
+                print(f"    {task}")
+
+# Replace with your AWS region
+region = "your-region"
+check_clusters(region)
+
