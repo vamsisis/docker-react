@@ -48,3 +48,6 @@ container_cpu_usage_kernelmode_Nanosecondscontainer_cpu_onlines_Countcontainer_c
 
 100 * (rate(container_cpu_usage_total_Nanoseconds{aws_ecs_cluster_name="$aws_ecs_cluster_name"}[1m]) / 
        (container_cpu_cores_Count{aws_ecs_cluster_name="$aws_ecs_cluster_name"} * 1e9)) > 80
+
+
+aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -c 'echo "Cluster: {}"; aws ecs list-tasks --cluster {} --query "taskArns" --output text | grep . || echo "  No running tasks in this cluster"'
