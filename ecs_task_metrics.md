@@ -56,32 +56,28 @@ aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -
 aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -c 'if [ -z "$(aws ecs list-tasks --cluster {} --query "taskArns" --output text)" ]; then echo {}; fi'
 
 
-import boto3
+#!/bin/bash
 
-def check_clusters(region):
-    client = boto3.client("ecs", region_name=region)
-    
-    try:
-        # Get all clusters
-        clusters = client.list_clusters()["clusterArns"]
-        if not clusters:
-            print(f"No ECS clusters found in region {region}.")
-            return
-        
-        for cluster in clusters:
-            print(f"Checking cluster: {cluster}")
-            
-            # Get running tasks
-            tasks = client.list_tasks(cluster=cluster)["taskArns"]
-            if not tasks:
-                print(f"  No running tasks in cluster {cluster}.")
-            else:
-                print(f"  Running tasks found in cluster {cluster}:")
-                for task in tasks:
-                    print(f"    {task}")
-    except Exception as e:
-        print(f"Error: {e}")
+# Specify the AWS region
+AWS_REGION="your-region"
 
-# Replace with your AWS region
-region = "your-region"
-check_clusters(region)
+# Get the list of all ECS clusters
+clusters=$(aws ecs list-clusters --region "$AWS_REGION" --query "clusterArns" --output text)
+
+if [[ -z "$clusters" ]]; then
+  echo "No ECS clusters found in region $AWS_REGION."
+  exit 0
+fi
+
+echo "Checking ECS clusters in region $AWS_REGION..."
+
+# Loop through each cluster and check for running tasks
+for cluster in $clusters; do
+  # Get the list of running tasks in the cluster
+  tasks=$(aws ecs list-tasks --cluster "$cluster" --region "$AWS_REGION" --query "taskArns" --output text)
+  
+  # If no tasks are running, print the cluster name
+  if [[ -z "$tasks" ]]; then
+    echo "Cluster with no running tasks: $cluster"
+  fi
+done
