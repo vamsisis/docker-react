@@ -61,25 +61,27 @@ import boto3
 def check_clusters(region):
     client = boto3.client("ecs", region_name=region)
     
-    # Get all clusters
-    clusters = client.list_clusters()["clusterArns"]
-    if not clusters:
-        print(f"No ECS clusters found in region {region}.")
-        return
-    
-    for cluster in clusters:
-        print(f"Checking cluster: {cluster}")
+    try:
+        # Get all clusters
+        clusters = client.list_clusters()["clusterArns"]
+        if not clusters:
+            print(f"No ECS clusters found in region {region}.")
+            return
         
-        # Get running tasks
-        tasks = client.list_tasks(cluster=cluster)["taskArns"]
-        if not tasks:
-            print(f"  No running tasks in cluster {cluster}.")
-        else:
-            print(f"  Running tasks found in cluster {cluster}:")
-            for task in tasks:
-                print(f"    {task}")
+        for cluster in clusters:
+            print(f"Checking cluster: {cluster}")
+            
+            # Get running tasks
+            tasks = client.list_tasks(cluster=cluster)["taskArns"]
+            if not tasks:
+                print(f"  No running tasks in cluster {cluster}.")
+            else:
+                print(f"  Running tasks found in cluster {cluster}:")
+                for task in tasks:
+                    print(f"    {task}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 # Replace with your AWS region
 region = "your-region"
 check_clusters(region)
-
