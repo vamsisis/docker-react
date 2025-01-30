@@ -86,3 +86,4 @@ done
 
 aws_ecs_container_image_id * on(aws_ecs_task_id) group_right() aws_ecs_task_known_status{aws_ecs_task_known_status="RUNNING"}
 
+aws_ecs_cluster_name="ewc-svcgr",container_image_name="raas-docker-snapshot-local.docker.fis.dev/com/fis/raas/monitoring/aws-otel-collector",container_image_tag="v.35.9.5"}
