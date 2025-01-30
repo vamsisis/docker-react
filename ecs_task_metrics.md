@@ -81,3 +81,8 @@ for cluster in $clusters; do
     echo "Cluster with no running tasks: $cluster"
   fi
 done
+
+
+
+aws_ecs_container_image_id * on(aws_ecs_task_id) group_right() aws_ecs_task_known_status{aws_ecs_task_known_status="RUNNING"}
+
