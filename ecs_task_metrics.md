@@ -94,4 +94,33 @@ aws_ecs_container_image_id{
     container_image_tag="v.35.9.5"
 } 
 * on(aws_ecs_task_id) group_right() aws_ecs_task_known_status{aws_ecs_task_known_status="RUNNING"}
+=========================================================
 
+{{ define "rdshighcpuusage" -}}
+{{ if gt (len .Alerts.Firing) 0 -}}
+**🚨 Firing 5XX Alerts 🚨**
+
+{{ range .Alerts.Firing -}}
+{{ if eq .Labels.alert_name "5XX Error Rate" -}}
+**Alert Details:**
+- **Load Balancer**: {{ .Labels.LoadBalancer }}
+- **Current 5XX Error Rate**: 🚨 {{ index .Values "E" }}% (Above Threshold)
+{{ end -}}
+{{ end -}}
+
+{{ else if gt (len .Alerts.Resolved) 0 -}}
+**✅ Resolved 5XX Alerts ✅**
+
+{{ range .Alerts.Resolved -}}
+{{ if eq .Labels.alert_name "5XX Error Rate" -}}
+**Alert Details:**
+- **Load Balancer**: {{ .Labels.LoadBalancer }}
+- **Resolved 5XX Error Rate**: {{ index .Values "E" }}%
+- **Status**: Resolved ✅
+{{ end -}}
+{{ end -}}
+
+{{ else -}}
+No active 5XX alerts at the moment.
+{{ end -}}
+{{ end -}}
