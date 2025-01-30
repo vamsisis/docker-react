@@ -96,31 +96,31 @@ aws_ecs_container_image_id{
 * on(aws_ecs_task_id) group_right() aws_ecs_task_known_status{aws_ecs_task_known_status="RUNNING"}
 =========================================================
 
-{{ define "rdshighcpuusage" -}}
-{{ if gt (len .Alerts.Firing) 0 -}}
-**🚨 Firing 5XX Alerts 🚨**
+{{ define "rdshighcpuusage" -}} 
+{{ if gt (len .Alerts.Firing) 0 -}} 🚨 High CPU Utilization Alert 🚨
 
-{{ range .Alerts.Firing -}}
-{{ if eq .Labels.alert_name "5XX Error Rate" -}}
-**Alert Details:**
-- **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Current 5XX Error Rate**: 🚨 {{ index .Values "E" }}% (Above Threshold)
-{{ end -}}
-{{ end -}}
+{{ range .Alerts.Firing -}} 
+{{ if eq .Labels.alert_name "High CPU Utilization" -}} 
+Alert Details:
 
-{{ else if gt (len .Alerts.Resolved) 0 -}}
-**✅ Resolved 5XX Alerts ✅**
-
-{{ range .Alerts.Resolved -}}
-{{ if eq .Labels.alert_name "5XX Error Rate" -}}
-**Alert Details:**
-- **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Resolved 5XX Error Rate**: {{ index .Values "E" }}%
-- **Status**: Resolved ✅
-{{ end -}}
+Instance: {{ .Labels.Instance }}
+Current CPU Utilization: 🚨 {{ index .Values "E" }}% (Above Threshold) 
+{{ end -}} 
 {{ end -}}
 
-{{ else -}}
-No active 5XX alerts at the moment.
+{{ else if gt (len .Alerts.Resolved) 0 -}} ✅ CPU Utilization Resolved ✅
+
+{{ range .Alerts.Resolved -}} 
+{{ if eq .Labels.alert_name "High CPU Utilization" -}} 
+Alert Details:
+
+Instance: {{ .Labels.Instance }}
+Resolved CPU Utilization: {{ index .Values "E" }}%
+Status: Resolved ✅ 
+{{ end -}} 
 {{ end -}}
+
+{{ else -}} No active CPU utilization alerts at the moment. 
+{{ end -}} 
 {{ end -}}
+
