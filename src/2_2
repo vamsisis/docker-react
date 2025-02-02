@@ -3,12 +3,11 @@
 
 {{ range .Alerts.Firing -}}  
 {{ if eq .Labels.alert_name "High CPU Utilization" -}} 
-Alert Details:
+**Alert Details:**
 
-RDS_Cluster: {{ .Labels.DBClusterIdentifier }}  
-Environment : {{ .Labels.environment }}  
-
-Current CPU Utilization: 🚨 {{ .Annotations["B"] }}% (Above Threshold)  
+- **RDS Cluster**: {{ .Labels.DBClusterIdentifier }}  
+- **Environment**: {{ .Labels.environment }}  
+- **Current CPU Utilization**: 🚨 {{ .Annotations.B }}% (Above Threshold)  
 {{ end -}}  
 {{ end -}}  
 
@@ -17,14 +16,15 @@ Current CPU Utilization: 🚨 {{ .Annotations["B"] }}% (Above Threshold)
 {{ range .Alerts.Resolved -}}  
 {{ if eq .Labels.alert_name "High CPU Utilization" -}}  
 
-Alert Details:
+**Alert Details:**
 
-RDS_Cluster: {{ .Labels.DBClusterIdentifier }}  
-Environment : {{ .Labels.environment }}  
-Resolved CPU Utilization: {{ .Annotations["B"] }}%  
-Status: Resolved ✅  
+- **RDS Cluster**: {{ .Labels.DBClusterIdentifier }}  
+- **Environment**: {{ .Labels.environment }}  
+- **Resolved CPU Utilization**: {{ .Annotations.B }}%  
+- **Status**: Resolved ✅  
 {{ end -}} 
 {{ end -}}  
+
 {{ else -}} No active CPU utilization alerts at the moment.  
 {{ end -}}  
-{{ end -}}
+{{ end -}} 
