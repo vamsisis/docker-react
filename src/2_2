@@ -31,3 +31,12 @@
 
 
 count by (task) (ecs_task_memory_utilized_Megabytes{aws_ecs_cluster_name="$aws_ecs_cluster_name",aws_ecs_task_known_status="RUNNING"})
+
+
+(
+    count by (aws_ecs_task_id,aws_ecs_cluster_name) (ecs_task_memory_utilized_Megabytes)
+)
+-
+(
+    count by (aws_ecs_task_id,aws_ecs_cluster_name) (ecs_task_memory_utilized_Megabytes{aws_ecs_cluster_name="$aws_ecs_cluster_name",aws_ecs_task_known_status="RUNNING"})
+    )
