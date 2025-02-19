@@ -124,3 +124,24 @@ Status: Resolved ✅
 {{ end -}} 
 {{ end -}}
 
+(sum by(api) (http_server_requests_seconds_count{status=~"2.."}))
+/
+(sum by(api) (http_server_requests_seconds_count))
+* 100
+
+
+(sum by(api) (http_server_requests_seconds_count{status=~"4..|5.."}))
+/
+(sum by(api) (http_server_requests_seconds_count))
+* 100
+
+
+histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (le, api))
+
+
+sum by(api) (rate(http_server_requests_seconds_count[5m]))
+
+
+(sum by(api) (http_server_requests_seconds_count{status=~"5.."})) > 10
+
+
