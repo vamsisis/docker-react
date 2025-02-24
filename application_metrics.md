@@ -12,3 +12,16 @@ label_replace(
     'uri', 
     '(.*)\\/\\{.+\\}(.*)'
 )
+======================================================
+
+label_replace(
+  sum by (method, uri, exception, status) (
+    increase(
+      http_server_requests_seconds_count{
+        job="$job", 
+        $_instance_label_name="$instance", 
+        status="5..|400|499"
+      }[$__range]) / (${__range_s} / 60)
+  ), 
+  "uri", "$1/$2", "uri", "(.)\\/\\{.+\\}(.*)"
+)
