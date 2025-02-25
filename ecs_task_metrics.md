@@ -144,4 +144,10 @@ sum by(api) (rate(http_server_requests_seconds_count[5m]))
 
 (sum by(api) (http_server_requests_seconds_count{status=~"5.."})) > 10
 
+=================================================================
+
+aws_ecs_cluster_name{aws_ecs_cluster_name=~"$cluster"}
+  * on(aws_ecs_task_id) group_right() aws_ecs_container_image_id
+  * on(aws_ecs_task_id) group_right() container_image_name{container_image_name=~"$image_name"}
+  * on(aws_ecs_task_id) group_right() container_image_tag{container_image_tag=~"$image_tag"}
 
