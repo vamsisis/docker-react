@@ -151,3 +151,13 @@ aws_ecs_cluster_name{aws_ecs_cluster_name=~"$cluster"}
   * on(aws_ecs_task_id) group_right() container_image_name{container_image_name=~"$image_name"}
   * on(aws_ecs_task_id) group_right() container_image_tag{container_image_tag=~"$image_tag"}
 
+=========================================================================
+
+aws_ecs_task_known_status{aws_ecs_task_known_status="RUNNING", aws_ecs_cluster_name=~"$cluster"}
+  * on(aws_ecs_task_id) group_right()
+  label_replace(aws_ecs_container_image_id, "container_image_id", "$1", "aws_ecs_container_image_id", "(.*)")
+  * on(aws_ecs_task_id) group_right()
+  label_replace(container_image_name, "image_name", "$1", "container_image_name", "(.*)")
+  * on(aws_ecs_task_id) group_right()
+  label_replace(container_image_tag, "image_tag", "$1", "container_image_tag", "(.*)")
+
