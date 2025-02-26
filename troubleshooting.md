@@ -20,8 +20,11 @@ container_cpu_usage_system_Nanoseconds{
 
 ===========================================================
 
-aws_ecs_docker_name{aws_ecs_cluster_name="$aws_ecs_cluster_name", aws_ecs_task_id="$aws_ecs_task_id", aws_ecs_task_family="$aws_ecs_task_family"} 
-or 
-aws_ecs_container_image_id{aws_ecs_cluster_name="$aws_ecs_cluster_name", aws_ecs_task_id="$aws_ecs_task_id", aws_ecs_task_family="$aws_ecs_task_family"}
+max by (aws_ecs_cluster_name, aws_ecs_docker_name, container_image_tag) (
+    container_memory_usage_Bytes{
+        aws_ecs_cluster_name="$aws_ecs_cluster_name", 
+        aws_ecs_task_id="$aws_ecs_task_id", 
+        aws_ecs_task_family="$aws_ecs_task_family"
+    }
+)
 
-label_values({aws_ecs_cluster_name="$aws_ecs_cluster_name", aws_ecs_task_id="$aws_ecs_task_id"}, container_image_tag)
