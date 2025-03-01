@@ -1,0 +1,47 @@
+ClusterName
+
+MemoryReserved
+StorageReadBytes
+EphemeralStorageReserved
+StorageWriteBytes
+TaskCount
+NetworkRxBytes
+EphemeralStorageUtilized
+ServiceCount
+CpuReserved
+NetworkTxBytes
+MemoryUtilized
+CpuUtilized
+ContainerInstanceCount
+
+
+ClusterName,TaskDefinitionFamily
+
+EphemeralStorageUtilized
+StorageWriteBytes
+NetworkTxBytes
+EphemeralStorageReserved
+StorageReadBytes
+CpuUtilized
+NetworkRxBytes
+MemoryReserved
+CpuReserved
+MemoryUtilized
+
+ClusterName,SericeName
+
+CpuUtilized - completed 
+DesiredTaskCount - completed 
+TaskSetCount
+EphemeralStorageReserved
+NetworkRxBytes
+DeploymentCount
+EphemeralStorageUtilized
+NetworkTxBytes
+PendingTaskCount - completed
+RunningTaskCount - completed 
+MemoryUtilized
+StorageReadBytes
+CpuReserved
+StorageWriteBytes
+MemoryReserved
