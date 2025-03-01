@@ -45,3 +45,13 @@ StorageReadBytes
 CpuReserved
 StorageWriteBytes
 MemoryReserved
+
+# Variables 
+ClusterName
+
+ServiceName
+Dimesions - clusterName
+
+tasks
+taskDefinitionFamily clusterName
+
