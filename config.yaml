@@ -1,0 +1,62 @@
+receivers:
+  otlp:
+   protocols:
+     http:
+       endpoint: "localhost:4317"
+  prometheus:
+    config:
+      global:
+        scrape_interval: 15s
+        scrape_timeout: 10s
+      scrape_configs:
+       - job_name: $APP_NAME
+         static_configs:
+          - targets: [$AWS_PROMETHEUS_SCRAPING_ENDPOINT]
+         metrics_path: $APP_SCRAPE_PATH
+  awsecscontainermetrics:
+    collection_interval: 20s
+
+processors:
+  batch:
+
+exporters:
+  prometheusremotewrite:
+    remote_write_queue:
+      enabled: true
+    endpoint: $AWS_PROMETHEUS_ENDPOINT
+    auth:
+      authenticator: sigv4auth
+    resource_to_telemetry_conversion:
+      enabled: true
+  logging:
+    loglevel: debug
+
+extensions:
+  sigv4auth:
+    region: $REGION
+    service: aps
+    assume_role:
+      arn: $AMP_ROLE_ARN
+      sts_region: $REGION
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+
+service:
+  extensions: [pprof, zpages, health_check, sigv4auth]
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      exporters: [logging, prometheusremotewrite]
+
+    metrics/ecs:
+      receivers: [awsecscontainermetrics]
+      exporters: [logging, prometheusremotewrite]
+
+  telemetry:
+    logs:
+      level: debug
+
