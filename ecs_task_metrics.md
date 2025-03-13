@@ -161,3 +161,16 @@ aws_ecs_task_known_status{aws_ecs_task_known_status="RUNNING", aws_ecs_cluster_n
   * on(aws_ecs_task_id) group_right()
   label_replace(container_image_tag, "image_tag", "$1", "container_image_tag", "(.*)")
 
+======================================
+
+groups:
+  - name: ecs_oom_alerts
+    rules:
+      - alert: ECSOOMAlert
+        expr: (rate(ecs_task_memory_usage_max_Bytes[5m]) / ecs_task_memory_usage_limit_Bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ECS Task OOM Alert"
+          description: "Task {{ $labels.aws_ecs_task_id }} in Cluster {{ $labels.aws_ecs_cluster_name }} is running out of memory."
