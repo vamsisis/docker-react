@@ -1,0 +1,29 @@
+template_files:
+  default_template: |
+    {{ define "sns.default.subject" }}{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }} alerts firing{{ else }}:{{ .Alerts.Resolved | len }} alerts resolved{{ end }}{{ end }}
+    {{ define "_alertmanager" }}AlertManager{{ end }}
+    {{ define "_alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver | urlquery }}{{ end }}
+
+alertmanager_config:
+  route:
+    receiver: 'default'
+
+  receivers:
+    - name: 'default'
+      sns_configs:
+        - topic_arn: "arn:aws:sns:us-east-1:610278442121:fis-ss-grafana-alerts"
+          sigv4:
+            region: us-east-1
+          attributes:
+            key: "ECS Alert"
+          message: |
+            *Alert:* {{ .CommonLabels.alertname }}
+            *Instance:* {{ .CommonLabels.instance }}
+            *Job:* {{ .CommonLabels.job }}
+            *Name:* {{ .CommonLabels.name }}
+            *Service:* {{ .CommonLabels.service_name }}
+            *Net Host Port:* {{ .CommonLabels.net_host_port }}
+            *Service Instance ID:* {{ .CommonLabels.service_instance_id }}
+            *Severity:* {{ .CommonLabels.severity }}
+            *Description:* {{ .CommonAnnotations.description }}
+            *Source:* {{ .CommonAnnotations.source }}
