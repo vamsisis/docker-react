@@ -1,0 +1,25 @@
+- alert: HighHttpClientErrorRate
+  expr: |
+    100 * (
+      sum by (job, clientName, uri, status, outcome) (
+        rate(http_client_requests_seconds_count{
+          status=~"400|401|500|502|504"
+        }[5m])
+      )
+      /
+      sum by (job, clientName, uri, status, outcome) (
+        rate(http_client_requests_seconds_count{}[5m])
+      )
+    ) > 5
+  for: 2m
+  labels:
+    severity: critical
+  annotations:
+    summary: "High error rate on {{ $labels.job }} for client {{ $labels.clientName }}"
+    description: |
+      Error rate is above threshold for:
+      - Job: {{ $labels.job }}
+      - Client: {{ $labels.clientName }}
+      - URI: {{ $labels.uri }}
+      - Status: {{ $labels.status }}
+      - Outcome: {{ $labels.outcome }}
