@@ -23,3 +23,30 @@
       - URI: {{ $labels.uri }}
       - Status: {{ $labels.status }}
       - Outcome: {{ $labels.outcome }}
+
+===============================================================
+
+- alert: HighHttpClientErrorRate
+  expr: |
+    (
+      sum by (job, clientName) (
+        rate(http_client_requests_seconds_count{status=~"4..|5.."}[5m])
+      )
+      /
+      sum by (job, clientName) (
+        rate(http_client_requests_seconds_count{}[5m])
+      )
+    ) * 100 > 5
+    and
+    sum by (job, clientName) (
+      rate(http_client_requests_seconds_count{}[5m])
+    ) > 1
+  for: 2m
+  labels:
+    severity: critical
+  annotations:
+    summary: "High error rate on {{ $labels.job }} for client {{ $labels.clientName }}"
+    description: |
+      HTTP error rate is above 5% with more than 1 RPS over the past 5 minutes.
+      - Job: {{ $labels.job }}
+      - Client: {{ $labels.clientName }}
