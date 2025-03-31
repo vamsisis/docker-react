@@ -70,11 +70,7 @@ aws_ecs_task_version
 
 container_cpu_usage_kernelmode_Nanosecondscontainer_cpu_onlines_Countcontainer_cpu_reserved_Nonecontainer_cpu_utilized_Nonecontainer_network_rate_tx_Bytes_per_Secondcontainer_network_io_usage_rx_errors_Countcontainer_network_io_usage_rx_dropped_Countcontainer_network_io_usage_tx_dropped_Countcontainer_network_io_usage_rx_bytes_Bytescontainer_memory_usage_limit_Bytescontainer_memory_usage_Bytescontainer_network_io_usage_tx_packets_Countcontainer_storage_write_bytes_Bytescontainer_cpu_cores_Countcontainer_cpu_usage_vcpu_vCPUcontainer_cpu_usage_usermode_Nanosecondscontainer_memory_reserved_Megabytescontainer_cpu_usage_total_Nanosecondscontainer_memory_usage_max_Bytescontainer_network_io_usage_tx_bytes_Bytescontainer_memory_utilized_Megabytescontainer_network_io_usage_rx_packets_Countcontainer_duration_Secondscontainer_cpu_usage_system_Nanosecondscontainer_network_rate_rx_Bytes_per_Secondcontainer_storage_read_bytes_Bytes
 
-100 * (container_memory_utilized_Megabytes{aws_ecs_cluster_name="$aws_ecs_cluster_name"} / 
-       (container_memory_usage_limit_Bytes{aws_ecs_cluster_name="$aws_ecs_cluster_name"} / 1024 / 1024)) > 80
 
-100 * (rate(container_cpu_usage_total_Nanoseconds{aws_ecs_cluster_name="$aws_ecs_cluster_name"}[1m]) / 
-       (container_cpu_cores_Count{aws_ecs_cluster_name="$aws_ecs_cluster_name"} * 1e9)) > 80
 
 
 aws ecs list-clusters --query "clusterArns" --output text | xargs -n1 -I {} sh -c 'echo "Cluster: {}"; aws ecs list-tasks --cluster {} --query "taskArns" --output text | grep . || echo "  No running tasks in this cluster"'
