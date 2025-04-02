@@ -44,16 +44,20 @@
 ======================
 
 {{ define "CustomBodyForAlerting" }}
-Raw Data Dump:
 
-Labels:
+Raw Alert Dump:
+
 {{ range .Alerts.Firing }}
-  {{ .Labels }}
+🔔 Alert:
+- Labels: {{ printf "%v" .Labels }}
+- Annotations: {{ printf "%v" .Annotations }}
+- Values: {{ printf "%v" .Values }}
 {{ end }}
 
-Values:
-{{ range .Alerts.Firing }}
-  {{ .Values }}
+{{ if eq (len .Alerts.Firing) 0 }}
+No firing alerts found.
 {{ end }}
+
 {{ end }}
+
 
