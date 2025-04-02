@@ -8,14 +8,12 @@
 
 {{ if eq .Labels.alert_name "unhealthyhost" }}
 
-**Load Balancer:** {{ .Labels.LoadBalancer }}
+- **Load Balancer:** {{ .Labels.LoadBalancer }}
 
-{{ range $tg, $value := .Values }}
-  {{ if hasPrefix $tg "TargetGroup" }}
-  - **Target Group:** {{ $tg }}
-    - **Unhealthy Host Count:** {{ $value }}
+  {{ range $k, $v := .Values }}
+  - **Target Group / Metric Key:** {{ $k }}
+    - **Unhealthy Host Count:** {{ $v }}
   {{ end }}
-{{ end }}
 
 {{ end }}
 {{ end }}
@@ -26,15 +24,17 @@
 
 {{ range .Alerts.Resolved }}
 **Alert Name:** {{ .Labels.alert_name }}
-**Load Balancer:** {{ .Labels.LoadBalancer }}
 
-{{ range $tg, $value := .Values }}
-  {{ if hasPrefix $tg "TargetGroup" }}
-  - **Target Group:** {{ $tg }}
-    - **Unhealthy Host Count (Resolved):** {{ $value }}
+{{ if eq .Labels.alert_name "unhealthyhost" }}
+
+- **Load Balancer:** {{ .Labels.LoadBalancer }}
+
+  {{ range $k, $v := .Values }}
+  - **Target Group / Metric Key:** {{ $k }}
+    - **Resolved Unhealthy Host Count:** {{ $v }}
   {{ end }}
-{{ end }}
 
+{{ end }}
 {{ end }}
 {{ end }}
 
