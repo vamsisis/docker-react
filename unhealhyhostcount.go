@@ -39,3 +39,21 @@
 {{ end }}
 
 {{ end }}
+
+
+======================
+
+{{ define "CustomBodyForAlerting" }}
+Raw Data Dump:
+
+Labels:
+{{ range .Alerts.Firing }}
+  {{ .Labels }}
+{{ end }}
+
+Values:
+{{ range .Alerts.Firing }}
+  {{ .Values }}
+{{ end }}
+{{ end }}
+
