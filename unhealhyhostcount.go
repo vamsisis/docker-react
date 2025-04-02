@@ -45,16 +45,17 @@
 
 {{ define "CustomBodyForAlerting" }}
 
-Raw Alert Dump:
+{{ if gt (len .Alerts.Firing) 0 }}
+**🚨 Unhealthy Targets Detected**
 
 {{ range .Alerts.Firing }}
-🔔 Alert:
-- Labels: {{ printf "%v" .Labels }}
-- Annotations: {{ printf "%v" .Annotations }}
-- Values: {{ printf "%v" .Values }}
-{{ end }}
+- **Alert Name**: {{ .Labels.alert_name }}
+- **Load Balancer**: {{ .Labels.LoadBalancer }}
+- **Target Group**: {{ .Labels.TargetGroup }}
+- **Unhealthy Host Count**: {{ index .Values "Value" }}
 
-{{ if eq (len .Alerts.Firing) 0 }}
+{{ end }}
+{{ else }}
 No firing alerts found.
 {{ end }}
 
