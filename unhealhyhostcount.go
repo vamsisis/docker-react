@@ -43,22 +43,12 @@
 
 ======================
 
-{{ define "CustomBodyForAlerting" }}
-
-{{ if gt (len .Alerts.Firing) 0 }}
-**🚨 Unhealthy Targets Detected**
-
-{{ range .Alerts.Firing }}
-- **Alert Name**: {{ .Labels.alert_name }}
+{{ else if eq .Labels.alert_name "5XX Error Rate" }}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Target Group**: {{ .Labels.TargetGroup }}
-- **Unhealthy Host Count**: {{ index .Values "Value" }}
-
-{{ end }}
-{{ else }}
-No firing alerts found.
+- **Total 5XX Errors**: {{ with index .EvalMatches 0 }}{{ .Value }}{{ end }}
+- **Total Requests**: {{ with index .EvalMatches 1 }}{{ .Value }}{{ end }}
+- **Current 5XX Errors Rate %**: {{ with index .EvalMatches 2 }}{{ printf "%.2f" .Value }}{{ end }}
 {{ end }}
 
-{{ end }}
 
 
