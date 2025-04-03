@@ -41,42 +41,33 @@
 {{ end }}
 
 
-======================
+=============================================================
+
 {{ define "CustomBodyfor5XXAlerting" -}}
 {{ if gt (len .Alerts.Firing) 0 -}}
-**Firing Alerts**
+**Firing 5XX Error Rate Alerts**
 {{ range .Alerts.Firing -}}
-{{ if or (eq .Labels.alert_name "unhealthyhost") (eq .Labels.alert_name "High Request Count") (eq .Labels.alert_name "High Target Response Time") (eq .Labels.alert_name "5XX Error Rate") -}}
+{{ if eq .Labels.alert_name "5XX Error Rate" -}}
 **Alert Details:**
 - **Alert Name**: {{ .Labels.alert_name }}
-
-{{ else if eq .Labels.alert_name "5XX Error Rate" }}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Total 5XX Errors**: 5XX Errors are above 10% 
-
+- **Total 5XX Errors**: 5XX Errors are above 10%
 {{ end -}}
 {{ end -}}
-{{ end -}}
-
 
 {{ else if gt (len .Alerts.Resolved) 0 -}}
-**Resolved Alerts**
+**Resolved 5XX Error Rate Alerts**
 {{ range .Alerts.Resolved -}}
-{{ if or (eq .Labels.alert_name "5XX Error Rate") -}}
+{{ if eq .Labels.alert_name "5XX Error Rate" }}
 **Alert Details:**
-
 - **Alert Name**: {{ .Labels.alert_name }}
-{{ else if eq .Labels.alert_name "5XX Error Rate" }}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Total 5XX Errors**: - **Total 5XX Errors**: 5XX Errors are above 10% 
-
-{{ end -}}
+- **Total 5XX Errors**: 5XX Errors are above 10%
 {{ end -}}
 {{ end -}}
 
 {{ else -}}
-No active alerts.
+No active 5XX Error Rate alerts.
 {{ end -}}
 {{ end -}}
-
 
