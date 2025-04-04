@@ -42,33 +42,29 @@
 
 
 =============================================================
-{map[%!f(string=Lo):%!f(string=ap)] 2.78}
+{{{ define "CustomBodyfor5XXAlerting" -}}
+{{ if gt (len .Alerts.Firing) 0 }}
+**Alert: 5XX Error Rate Above Threshold**
 
-{{ define "CustomBodyfor5XXAlerting" -}}
-{{ if gt (len .Alerts.Firing) 0 -}}
-**Firing 5XX Error Rate Alerts**
-{{ range .Alerts.Firing -}}
-{{ if eq .Labels.alert_name "5XX Error Rate" -}}
-**Alert Details:**
+**Summary**: 5XX error rate for Load Balancer `{{ .Labels.LoadBalancer }}` exceeded the threshold of 10%.
+
+**Description**:
 - **Alert Name**: {{ .Labels.alert_name }}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Total 5XX Errors**: 5XX Errors are above 10%
-{{ end -}}
-{{ end -}}
+- **Total 5XX Errors**: {{ with index .EvalMatches 0 }}{{ .Value }}{{ end }}
+- **Total Requests**: {{ with index .EvalMatches 1 }}{{ .Value }}{{ end }}
+- **Current 5XX Error Rate**: {{ with index .EvalMatches 2 }}{{ printf "%.2f%%" .Value }}{{ end }}
+- **Threshold**: >10%
 
-{{ else if gt (len .Alerts.Resolved) 0 -}}
-**Resolved 5XX Error Rate Alerts**
-{{ range .Alerts.Resolved -}}
-{{ if eq .Labels.alert_name "5XX Error Rate" }}
-**Alert Details:**
+{{ else if gt (len .Alerts.Resolved) 0 }}
+**Resolved Alert: 5XX Error Rate**
+
+**Summary**: 5XX error rate for Load Balancer `{{ .Labels.LoadBalancer }}` has dropped below the threshold.
+
+**Description**:
 - **Alert Name**: {{ .Labels.alert_name }}
 - **Load Balancer**: {{ .Labels.LoadBalancer }}
-- **Total 5XX Errors**: 5XX Errors are above 10%
-{{ end -}}
-{{ end -}}
+{{ end }}
+{{ end }}
 
-{{ else -}}
-No active 5XX Error Rate alerts.
-{{ end -}}
-{{ end -}}
 
