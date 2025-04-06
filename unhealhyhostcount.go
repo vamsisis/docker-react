@@ -23,25 +23,8 @@ Threshold: >1.5 seconds
 {{ end }}
 {{ end }}
 
-{{ else if gt (len .Alerts.Resolved) 0 }}
-✅ Resolved Alerts
-{{ range .Alerts.Resolved }}
-{{ if or (eq .Labels.alert_name "5XX Error Rate") (eq .Labels.alert_name "High Target Response Time") }}
-
-Alert Name: {{ .Labels.alert_name }} resolved for Load Balancer: {{ .Labels.LoadBalancer }}
-
-{{ if eq .Labels.alert_name "5XX Error Rate" }}
-Resolved 5XX Error Rate: {{ if .ValueString }}{{ .ValueString }}%{{ else }}0%{{ end }}
-
-{{ else if eq .Labels.alert_name "High Target Response Time" }}
-Resolved Target Response Time: {{ if .ValueString }}{{ .ValueString }}{{ else }}0s{{ end }}
-
-{{ end }}
-{{ end }}
-{{ end }}
-
 {{ else }}
-No active or resolved alerts.
+No active alerts.
 {{ end }}
 
 {{ end }}
@@ -49,3 +32,9 @@ No active or resolved alerts.
 
 
 {{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}[CRITICAL]{{ .CommonLabels.alert_name }} for {{ .CommonLabels.LoadBalancer }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s):{{ .CommonLabels.alert_name }} for {{ .CommonLabels.LoadBalancer  }}{{ end }}{{ end }}
+
+{{ define "loadbalancer" }}
+{{ if gt (len .Alerts.Firing) 0 }}
+[CRITICAL] {{ .CommonLabels.alert_name }} for {{ .CommonLabels.LoadBalancer }}
+{{ end }}
+{{ end }}
