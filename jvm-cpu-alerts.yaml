@@ -1,0 +1,25 @@
+groups:
+  - name: jvm-cpu-alerts
+    rules:
+      - alert: HighProcessCpuUsage
+        expr: process_cpu_usage * 100 > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: CPU usage > 80% for {{ $labels.job }}."
+          description: |
+            - Application: {{ $labels.job }}
+            - Instance: {{ $labels.instance }}
+            - Current Process CPU Usage: {{ printf "%.2f" $value }}%
+
+      - alert: HighSystemCpuUsage
+        expr: system_cpu_usage * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "WARNING: System-wide CPU usage > 90%."
+          description: |
+            - Instance: {{ $labels.instance }}
+            - Current System CPU Usage: {{ printf "%.2f" $value }}%
