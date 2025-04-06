@@ -107,4 +107,16 @@
       - Client: {{ $labels.clientName }}
 
       [View detailed breakdown](https://grafana.yourdomain.com/d/xyz123/http-errors?var-job={{ $labels.job }}&var-clientName={{ $labels.clientName }})
+===================================================================
 
+- alert: NoIdleJDBCIdleConnections
+        expr: min_over_time(jdbc_connections_idle[5m]) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: no idle JDBC Connections for {{ $labels.job }}."
+          description: |
+            - Application : {{ $labels.job }}
+            - DB: {{ $labels.name }}
+            - Current Value: {{ printf "%.2f" $value }}
