@@ -1,5 +1,5 @@
 groups:
-  - name: jvm-cpu-alerts
+  - name: jvm-cpu-memory-alerts
     rules:
       - alert: HighProcessCpuUsage
         expr: process_cpu_usage * 100 > 80
@@ -23,3 +23,15 @@ groups:
           description: |
             - Instance: {{ $labels.instance }}
             - Current System CPU Usage: {{ printf "%.2f" $value }}%
+
+      - alert: HighHeapMemoryUsage
+        expr: ((jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) * 100) > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: Heap memory usage > 80% for {{ $labels.job }}."
+          description: |
+            - Application: {{ $labels.job }}
+            - Instance: {{ $labels.instance }}
+            - Used Heap Memory: {{ printf "%.2f" $value }}%
