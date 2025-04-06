@@ -1,4 +1,4 @@
-{{ define "CustomBodyforAlerting" -}}
+{{ define "CustomBodyfor5XXAlerting" -}}
 
 {{ if gt (len .Alerts.Firing) 0 }}
 🔥 Firing Alerts
@@ -16,7 +16,7 @@ Threshold: >10%
 
 {{ else if eq .Labels.alert_name "High Target Response Time" }}
 Load Balancer: {{ .Labels.LoadBalancer }}
-Current Target Response Time: {{ .ValueString }}
+Target response time: {{ .Labels.response_time }}
 Threshold: >1.5 seconds
 
 {{ end }}
@@ -45,3 +45,7 @@ No active or resolved alerts.
 {{ end }}
 
 {{ end }}
+
+
+
+{{ define "loadbalancer" }}{{ if gt (len .Alerts.Firing) 0 }}[CRITICAL]{{ .CommonLabels.alert_name }} for {{ .CommonLabels.LoadBalancer }}{{ else if gt (len .Alerts.Resolved) 0 }}✅ Resolved alert(s):{{ .CommonLabels.alert_name }} for {{ .CommonLabels.LoadBalancer  }}{{ end }}{{ end }}
