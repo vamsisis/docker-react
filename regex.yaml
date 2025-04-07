@@ -1,0 +1,5 @@
+**Alert Details**  
+- *Alert Name:* {{ $labels.alert_name }}  
+- *Load Balancer:* {{ regexReplaceAllLiteral " .*" "" $labels.LoadBalancer }}  
+- *Target Group:* {{ regexReplaceAllLiteral "^.*targetgroup/" "" $labels.LoadBalancer }}  
+- *Current Unhealthy Host Count:* {{ printf "%.2f" $value }}
