@@ -11,3 +11,32 @@
 - *Load Balancer:* {{ (split $labels.LoadBalancer " ")[0] }}
 - *Target Group:* {{ (split $labels.LoadBalancer " ")[1] }}
 - *Current Unhealthy Host Count:* {{ printf "%.2f" $value }}
+
+
+=======================================
+
+- alert: HikariCPPendingConnectionsAlert
+  expr: hikaricp_connections_pending > 0
+  for: 15m
+  labels:
+    severity: critical
+  annotations:
+    summary: "HikariCP Pending Connections Detected for {{ $labels.job }}"
+    description: |
+      Threads are waiting for connections (Pending > 0 for 15 mins).
+      - Application: {{ $labels.job }}
+      - DB: {{ $labels.name }}
+      - Message: Pool empty. Unable to fetch a connection in 1 second.
+
+
+- alert: HikariCPConnectionPoolSaturation
+  expr: (hikaricp_connections_active / hikaricp_connections_max) * 100 > 75
+  for: 15m
+  labels:
+    severity: critical
+  annotations:
+    summary: "HikariCP Pool Usage > 75% for {{ $labels.job }}"
+    description: |
+      - Application: {{ $labels.job }}
+      - DB: {{ $labels.name }}
+      - Usage: {{ printf "%.2f" $value }}%
