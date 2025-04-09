@@ -60,3 +60,20 @@
             The ECS container for the service `rps-rem-services` has exited with a non-zero exit code.
             This indicates the container has failed and the service is unhealthy.
 
+
+  groups:
+  - name: ecs-container-alerts
+    rules:
+      - alert: ECSContainerExitNonZero
+        expr: container_duration_seconds{aws_ecs_container_exit_code!="0"} > 0
+        for: 2m
+        labels:
+          severity: critical
+          service: rps-rem-services
+        annotations:
+          summary: "ECS container failed for rps-rem-services"
+          description: |
+            The ECS container for the service `rps-rem-services` has exited with a non-zero exit code.
+            This indicates the container has failed and the service is unhealthy.
+
+
