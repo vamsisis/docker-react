@@ -1,32 +1,64 @@
 groups:
   - name: ecs_network_error_alerts
     rules:
-      - alert: HighTXNetworkErrors
+      # Task-Level TX Network Errors
+      - alert: HighTXNetworkErrorsTaskLevel
         expr: |
           (rate(ecs_task_network_io_usage_tx_errors_Count[5m]) / rate(ecs_task_network_io_usage_tx_packets_Count[5m])) * 100 > 5
         for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "TX Network errors are above threshold for task {{ $labels.aws_ecs_task_id }} in container {{ $labels.container_name }}."
+          summary: "TX Network errors are above threshold for task {{ $labels.aws_ecs_task_id }}."
+          description: |
+            - Cluster: {{ $labels.aws_ecs_cluster_name }}
+            - Task ID: {{ $labels.aws_ecs_task_id }}
+            - TX Network Error Percentage: {{ printf "%.2f" $value }}%
+            - This alert is triggered when TX network errors exceed 5% in the last 5 minutes for the task.
+
+      # Container-Level TX Network Errors
+      - alert: HighTXNetworkErrorsContainerLevel
+        expr: |
+          (rate(container_network_io_usage_tx_errors_Count[5m]) / rate(container_network_io_usage_tx_packets_Count[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TX Network errors are above threshold for container {{ $labels.container_name }} in task {{ $labels.aws_ecs_task_id }}."
           description: |
             - Cluster: {{ $labels.aws_ecs_cluster_name }}
             - Task ID: {{ $labels.aws_ecs_task_id }}
             - Container: {{ $labels.container_name }}
             - TX Network Error Percentage: {{ printf "%.2f" $value }}%
-            - This alert is triggered when TX network errors exceed 5% in the last 5 minutes.
+            - This alert is triggered when TX network errors exceed 5% in the last 5 minutes for the container.
 
-      - alert: HighRXNetworkErrors
+      # Task-Level RX Network Errors
+      - alert: HighRXNetworkErrorsTaskLevel
         expr: |
           (rate(ecs_task_network_io_usage_rx_errors_Count[5m]) / rate(ecs_task_network_io_usage_rx_packets_Count[5m])) * 100 > 5
         for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "RX Network errors are above threshold for task {{ $labels.aws_ecs_task_id }} in container {{ $labels.container_name }}."
+          summary: "RX Network errors are above threshold for task {{ $labels.aws_ecs_task_id }}."
+          description: |
+            - Cluster: {{ $labels.aws_ecs_cluster_name }}
+            - Task ID: {{ $labels.aws_ecs_task_id }}
+            - RX Network Error Percentage: {{ printf "%.2f" $value }}%
+            - This alert is triggered when RX network errors exceed 5% in the last 5 minutes for the task.
+
+      # Container-Level RX Network Errors
+      - alert: HighRXNetworkErrorsContainerLevel
+        expr: |
+          (rate(container_network_io_usage_rx_errors_Count[5m]) / rate(container_network_io_usage_rx_packets_Count[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RX Network errors are above threshold for container {{ $labels.container_name }} in task {{ $labels.aws_ecs_task_id }}."
           description: |
             - Cluster: {{ $labels.aws_ecs_cluster_name }}
             - Task ID: {{ $labels.aws_ecs_task_id }}
             - Container: {{ $labels.container_name }}
             - RX Network Error Percentage: {{ printf "%.2f" $value }}%
-            - This alert is triggered when RX network errors exceed 5% in the last 5 minutes.
+            - This alert is triggered when RX network errors exceed 5% in the last 5 minutes for the container.
