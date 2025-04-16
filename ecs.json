@@ -11,3 +11,11 @@ exec /usr/bin/nginx-prometheus-exporter \
   -nginx.scrape-uri=https://localhost:443/rps/basic_status \
   -nginx.ssl-verify=false \
   -web.listen-address=:9113
+
+
+command": [
+    "/nginx-prometheus-exporter",
+    "-nginx.scrape-uri=https://localhost:443/rps/basic_status",
+    "-nginx.ssl-verify=false",
+    "-web.listen-address=:9113"
+  ],
