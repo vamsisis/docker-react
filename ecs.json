@@ -1,16 +1,13 @@
-{
-  "name": "nginx-exporter",
-  "image": "nginx/nginx-prometheus-exporter:latest",
-  "essential": false,
-  "portMappings": [
-    {
-      "containerPort": 9113,
-      "protocol": "tcp"
-    }
-  ],
-  "command": [
-    "-nginx.scrape-uri=https://localhost:443/rps/basic_status",
-    "-nginx.ssl-verify=false",
-    "-web.listen-address=:9113"
-  ]
-}
+FROM nginx/nginx-prometheus-exporter:latest
+
+COPY nginx-exporter-config.sh /usr/local/bin/nginx-exporter-config.sh
+
+CMD ["/usr/local/bin/nginx-exporter-config.sh"]
+
+
+#!/bin/sh
+
+exec /usr/bin/nginx-prometheus-exporter \
+  -nginx.scrape-uri=https://localhost:443/rps/basic_status \
+  -nginx.ssl-verify=false \
+  -web.listen-address=:9113
