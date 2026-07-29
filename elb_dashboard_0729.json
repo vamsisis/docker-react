@@ -1296,16 +1296,14 @@
       {
         "current": { "selected": false, "text": "us-east-1", "value": "us-east-1" },
         "datasource": { "type": "cloudwatch", "uid": "${datasource}" },
-        "definition": "",
+        "definition": "regions()",
         "hide": 0,
         "includeAll": false,
         "label": "Region",
         "multi": false,
         "name": "region",
         "options": [],
-        "query": {
-          "queryType": "regions"
-        },
+        "query": "regions()",
         "refresh": 1,
         "sort": 0,
         "type": "query"
@@ -1313,21 +1311,14 @@
       {
         "current": {},
         "datasource": { "type": "cloudwatch", "uid": "${datasource}" },
-        "definition": "",
+        "definition": "dimension_values($region,AWS/ApplicationELB,ActiveConnectionCount,LoadBalancer)",
         "hide": 0,
         "includeAll": false,
         "label": "Load Balancer",
         "multi": false,
         "name": "load_balancer_name",
         "options": [],
-        "query": {
-          "queryType": "dimensionValues",
-          "region": "${region}",
-          "namespace": "AWS/ApplicationELB",
-          "metricName": "RequestCount",
-          "dimensionKey": "LoadBalancer",
-          "dimensions": {}
-        },
+        "query": "dimension_values($region,AWS/ApplicationELB,ActiveConnectionCount,LoadBalancer)",
         "refresh": 2,
         "sort": 0,
         "type": "query"
@@ -1335,23 +1326,14 @@
       {
         "current": {},
         "datasource": { "type": "cloudwatch", "uid": "${datasource}" },
-        "definition": "",
+        "definition": "dimension_values($region,AWS/ApplicationELB,HealthyHostCount,TargetGroup,{\"LoadBalancer\":\"$load_balancer_name\"})",
         "hide": 0,
         "includeAll": true,
         "label": "Target Group",
         "multi": false,
         "name": "target_group",
         "options": [],
-        "query": {
-          "queryType": "dimensionValues",
-          "region": "${region}",
-          "namespace": "AWS/ApplicationELB",
-          "metricName": "RequestCount",
-          "dimensionKey": "TargetGroup",
-          "dimensionFilters": {
-            "LoadBalancer": ["${load_balancer_name}"]
-          }
-        },
+        "query": "dimension_values($region,AWS/ApplicationELB,HealthyHostCount,TargetGroup,{\"LoadBalancer\":\"$load_balancer_name\"})",
         "refresh": 2,
         "sort": 1,
         "type": "query"
