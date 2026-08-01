@@ -144,7 +144,7 @@
           }
         }
       ],
-      "description": "100 * utilized / reserved. Colour steps: green <40, lime 40, yellow 60, orange 75, red 90. Sub-1% readings mean the task is heavily over-provisioned.",
+      "description": "Transform order matters: labelsToFields must run BEFORE filterFieldsByName, otherwise the labels aren't fields yet and the filter strips everything (that was the 'No data'). merge collapses the per-series frames into one table.",
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -193,6 +193,16 @@
       },
       "transformations": [
         {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
           "id": "filterFieldsByName",
           "options": {
             "include": {
@@ -228,8 +238,8 @@
       "title": "Task CPU: Used vs Reserved (CPU units, log scale)",
       "gridPos": {
         "h": 8,
-        "w": 10,
-        "x": 4,
+        "w": 8,
+        "x": 8,
         "y": 1
       },
       "type": "timeseries",
@@ -257,7 +267,7 @@
           }
         }
       ],
-      "description": "Both series in CPU units (1024 = 1 vCPU) so they share an axis. LOG scale is essential here: used is single-digit units against 1024-4096 reserved, which on a linear axis flatlines at zero. The vertical gap between the two lines IS your headroom.",
+      "description": "Both series in CPU units (1024 = 1 vCPU) so they share an axis. LOG scale is essential here: used is single-digit units against 1024-4096 reserved, which on a linear axis flatlines at zero. The vertical gap between the two lines IS your headroom. Reserved is drawn as an orange dashed line, used as solid green with light fill, so the gap between them reads as headroom at a glance.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -281,7 +291,7 @@
           {
             "matcher": {
               "id": "byRegexp",
-              "options": "reserved.*"
+              "options": "/^reserved.*/"
             },
             "properties": [
               {
@@ -300,6 +310,33 @@
                   "mode": "fixed",
                   "fixedColor": "orange"
                 }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^used.*/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 10
               }
             ]
           }
@@ -312,8 +349,8 @@
       "title": "Task CPU Headroom (unused CPU units)",
       "gridPos": {
         "h": 8,
-        "w": 10,
-        "x": 14,
+        "w": 8,
+        "x": 16,
         "y": 1
       },
       "type": "timeseries",
@@ -372,7 +409,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "type": "timeseries",
       "datasource": {
@@ -399,13 +436,66 @@
           }
         }
       ],
-      "description": "Mirrors your working 'Memory Allocation vs Usage' panel - used in Bytes vs reserved converted from Megabytes.",
+      "description": "Mirrors your working 'Memory Allocation vs Usage' panel - used in Bytes vs reserved converted from Megabytes. Reserved is drawn as an orange dashed line, used as solid green with light fill, so the gap between them reads as headroom at a glance.",
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
           "custom": {}
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^reserved.*/"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    6
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^used.*/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 10
+              }
+            ]
+          }
+        ]
       },
       "options": {}
     },
@@ -416,7 +506,7 @@
         "h": 8,
         "w": 6,
         "x": 12,
-        "y": 7
+        "y": 9
       },
       "type": "timeseries",
       "datasource": {
@@ -451,7 +541,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 7
+        "y": 9
       },
       "type": "timeseries",
       "datasource": {
@@ -492,10 +582,10 @@
       "id": 8,
       "title": "Task Storage I/O (rate)",
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 17
       },
       "type": "timeseries",
       "datasource": {
@@ -687,13 +777,66 @@
           }
         }
       ],
-      "description": "If the 'reserved' series is empty, that container has no memory reservation set in its container definition - expected unless you set hard/soft limits per container.",
+      "description": "If the 'reserved' series is empty, that container has no memory reservation set in its container definition - expected unless you set hard/soft limits per container. Reserved is drawn as an orange dashed line, used as solid green with light fill, so the gap between them reads as headroom at a glance.",
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
           "custom": {}
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^reserved.*/"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    6
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^used.*/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 10
+              }
+            ]
+          }
+        ]
       },
       "options": {}
     },
@@ -785,6 +928,10 @@
           "options": {
             "mode": "columns"
           }
+        },
+        {
+          "id": "merge",
+          "options": {}
         },
         {
           "id": "filterFieldsByName",
@@ -886,6 +1033,10 @@
           }
         },
         {
+          "id": "merge",
+          "options": {}
+        },
+        {
           "id": "filterFieldsByName",
           "options": {
             "include": {
@@ -960,6 +1111,10 @@
           }
         },
         {
+          "id": "merge",
+          "options": {}
+        },
+        {
           "id": "filterFieldsByName",
           "options": {
             "include": {
@@ -982,7 +1137,7 @@
       "id": 17,
       "title": "Container Storage I/O (rate)",
       "gridPos": {
-        "h": 6,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 49
