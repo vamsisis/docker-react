@@ -1,0 +1,777 @@
+{
+  "id": null,
+  "uid": null,
+  "title": "ECS Fargate + OTel Sidecar - Container & Task Metrics",
+  "tags": [
+    "ecs",
+    "fargate",
+    "otel",
+    "prometheus"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "DS_PROMETHEUS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "label": "Prometheus / AMP datasource"
+      },
+      {
+        "name": "cluster",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(aws_ecs_cluster_name)",
+          "refId": "cluster"
+        },
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "refresh": 2,
+        "sort": 1,
+        "label": "Cluster",
+        "description": "Robust form used by your existing working dashboards - not tied to any single metric, so it can't break if one metric has a gap."
+      },
+      {
+        "name": "task_family",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values({aws_ecs_cluster_name=\"$cluster\"}, aws_ecs_task_family)",
+          "refId": "task_family"
+        },
+        "multi": false,
+        "includeAll": true,
+        "current": {},
+        "refresh": 2,
+        "sort": 1,
+        "label": "Task Family",
+        "description": "Stable across redeploys, unlike task_id - lets you find 'the service' before picking a specific running instance of it."
+      },
+      {
+        "name": "task_id",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values({aws_ecs_cluster_name=\"$cluster\", aws_ecs_task_family=\"$task_family\"}, aws_ecs_task_id)",
+          "refId": "task_id"
+        },
+        "multi": false,
+        "includeAll": true,
+        "current": {},
+        "refresh": 2,
+        "sort": 1,
+        "label": "Task ID",
+        "description": "Set to a single task_id (not 'All') to isolate one running task's metrics end-to-end across every panel."
+      },
+      {
+        "name": "container_name",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values({aws_ecs_cluster_name=\"$cluster\", aws_ecs_task_id=\"$task_id\"}, container_name)",
+          "refId": "container_name"
+        },
+        "multi": true,
+        "includeAll": true,
+        "current": {},
+        "refresh": 2,
+        "sort": 1,
+        "label": "Container"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Task Overview  (ecs_task_* - one series per running task)",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "title": "Task CPU Utilization (%)",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "type": "gauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "ecs_task_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "{{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "From ecs_task_cpu_utilized_None. If empty: confirm the receiver emits this metric for Fargate.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Task CPU Usage (vCPU)",
+      "gridPos": {
+        "h": 6,
+        "w": 9,
+        "x": 6,
+        "y": 1
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "{{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "Live vCPU consumption per task (gauge metric, already computed by the receiver - no rate() needed).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "title": "Task CPU Reserved (vCPU)",
+      "gridPos": {
+        "h": 6,
+        "w": 9,
+        "x": 15,
+        "y": 1
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "{{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "If this panel is empty, task-level CPU reservation isn't being reported - check the task definition cpu field.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 5,
+      "title": "Task Memory: Used vs Reserved",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "ecs_task_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "used - {{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "ecs_task_memory_reserved_Megabytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} * 1024 * 1024",
+          "legendFormat": "reserved - {{aws_ecs_task_id}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "Mirrors your working 'Memory Allocation vs Usage' panel - used in Bytes vs reserved converted from Megabytes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 6,
+      "title": "Task Memory Utilization (%)",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 7
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "100 * ecs_task_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / ecs_task_memory_usage_limit_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "{{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "Derived: usage_Bytes / usage_limit_Bytes * 100.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 7,
+      "title": "Task Network Throughput",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 7
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "ecs_task_network_rate_rx_Bytes_per_Second{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "rx - {{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "ecs_task_network_rate_tx_Bytes_per_Second{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "tx - {{aws_ecs_task_id}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "Receiver pre-computes rate - do NOT wrap in rate()/irate(), that metric is already a rate.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 8,
+      "title": "Task Storage I/O (rate)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "irate(ecs_task_storage_read_bytes_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}[5m])",
+          "legendFormat": "read - {{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "irate(ecs_task_storage_write_bytes_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}[5m])",
+          "legendFormat": "write - {{aws_ecs_task_id}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "These ARE cumulative counters (no _per_Second suffix) - irate() is required here, unlike the network metrics above.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "title": "Task Info",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "ecs_task_cpu_onlines_Count{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "Instant table for task identity/label reference - extend with aws_ecs_task_family, aws_ecs_task_revision, aws_ecs_launchtype via Transform > Organize fields.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 10,
+      "title": "Container Detail  (container_* - one series per container within selected task(s))",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "panels": []
+    },
+    {
+      "id": 11,
+      "title": "Container CPU Utilization (%) by container",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "container_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 12,
+      "title": "Container CPU Usage (vCPU) by container",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "container_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 13,
+      "title": "Container Memory Usage by container",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "legendFormat": "used - {{container_name}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "container_memory_reserved_Megabytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} * 1024 * 1024",
+          "legendFormat": "reserved - {{container_name}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "If the 'reserved' series is empty, that container has no memory reservation set in its container definition - expected unless you set hard/soft limits per container.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 14,
+      "title": "Container Network Throughput by container",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 33
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "container_network_rate_rx_Bytes_per_Second{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "legendFormat": "rx - {{container_name}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "container_network_rate_tx_Bytes_per_Second{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "legendFormat": "tx - {{container_name}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 15,
+      "title": "Container Instances in Selected Range",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 41
+      },
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "count by (container_name) (count by (container_name, container_id) (last_over_time(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[$__range])))",
+          "legendFormat": "{{container_name}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "Distinct container_id values seen for each container over the dashboard's selected time range (uses $__range, so it follows the time picker instead of a hardcoded window). 1 = no restart. A value of N means N-1 restarts happened, because every restart gets a fresh container_id in ECS/Docker.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 115,
+      "title": "Container Exit Events (start / stop / exit code)",
+      "gridPos": {
+        "h": 6,
+        "w": 10,
+        "x": 6,
+        "y": 41
+      },
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "last_over_time(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[$__range])",
+          "legendFormat": "",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "One row per container instance (container_id) in range. In the panel editor, apply Transform > 'Labels to fields' to surface container_name, container_id, aws_ecs_container_started_at, aws_ecs_container_finished_at, aws_ecs_container_exit_code as columns; sort by started_at desc; add a threshold/value mapping to color exit_code red when != 0. This tells you WHY a container restarted, not just that it did (0 = clean exit, 137 = OOM-killed/SIGKILL, other = app crash).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 16,
+      "title": "Container CPU Reserved (vCPU)",
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 41
+      },
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "container_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "legendFormat": "{{container_name}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "Expect empty unless per-container CPU limits are set in the task definition.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 17,
+      "title": "Container Storage I/O (rate)",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "irate(container_storage_read_bytes_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[5m])",
+          "legendFormat": "read - {{container_name}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "irate(container_storage_write_bytes_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[5m])",
+          "legendFormat": "write - {{container_name}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}
