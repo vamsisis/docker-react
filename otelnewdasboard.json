@@ -119,30 +119,32 @@
     },
     {
       "id": 2,
-      "title": "Task CPU Utilization (%)",
+      "title": "Task CPU Utilization (% of reserved)",
       "gridPos": {
-        "h": 6,
-        "w": 6,
+        "h": 8,
+        "w": 8,
         "x": 0,
         "y": 1
       },
-      "type": "gauge",
+      "type": "bargauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
       "targets": [
         {
-          "expr": "ecs_task_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "100 * ecs_task_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A",
+          "instant": true,
+          "range": false,
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           }
         }
       ],
-      "description": "From ecs_task_cpu_utilized_None. If empty: confirm the receiver emits this metric for Fargate.",
+      "description": "ecs_task_cpu_utilized_None is reported in CPU UNITS (1024 = 1 vCPU), NOT percent - that is what the _None suffix means. Raw value of 217 on a 2048-unit (2 vCPU) task is 10.6% utilization, not 217%. This panel divides utilized by reserved to get a true percentage. Bar gauge (not gauge) so it stays readable when task_id = All.",
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -169,17 +171,27 @@
         "overrides": []
       },
       "options": {
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "minVizWidth": 8,
+        "minVizHeight": 16
       }
     },
     {
       "id": 3,
       "title": "Task CPU Usage (vCPU)",
       "gridPos": {
-        "h": 6,
-        "w": 9,
-        "x": 6,
+        "h": 8,
+        "w": 8,
+        "x": 8,
         "y": 1
       },
       "type": "timeseries",
@@ -210,11 +222,11 @@
     },
     {
       "id": 4,
-      "title": "Task CPU Reserved (vCPU)",
+      "title": "Task CPU Reserved (CPU units)",
       "gridPos": {
-        "h": 6,
-        "w": 9,
-        "x": 15,
+        "h": 8,
+        "w": 8,
+        "x": 16,
         "y": 1
       },
       "type": "timeseries",
@@ -233,7 +245,7 @@
           }
         }
       ],
-      "description": "If this panel is empty, task-level CPU reservation isn't being reported - check the task definition cpu field.",
+      "description": "ecs_task_cpu_reserved_None in CPU units: 1024 = 1 vCPU, 2048 = 2 vCPU. Flat by design - it only changes on a new task definition revision.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -462,7 +474,7 @@
     },
     {
       "id": 11,
-      "title": "Container CPU Utilization (%) by container",
+      "title": "Container CPU Utilization (% of task reserved)",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -476,7 +488,7 @@
       },
       "targets": [
         {
-          "expr": "container_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "expr": "100 * container_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} / on(aws_ecs_task_id) group_left ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
           "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -485,7 +497,7 @@
           }
         }
       ],
-      "description": "",
+      "description": "container_cpu_utilized_None is also in CPU units, not percent. Divided here by the parent task's reserved units to get a real percentage. If this returns nothing, the join label may differ - fall back to the raw container_cpu_usage_vcpu_vCPU panel beside it.",
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -622,7 +634,7 @@
       "id": 15,
       "title": "Container Instances in Selected Range",
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 6,
         "x": 0,
         "y": 41
@@ -653,14 +665,33 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "instances"
+            }
+          }
+        }
+      ]
     },
     {
       "id": 115,
-      "title": "Container Exit Events (start / stop / exit code)",
+      "title": "Container Lifecycle & Exit Codes",
       "gridPos": {
-        "h": 6,
-        "w": 10,
+        "h": 8,
+        "w": 14,
         "x": 6,
         "y": 41
       },
@@ -674,15 +705,15 @@
           "expr": "last_over_time(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[$__range])",
           "legendFormat": "",
           "refId": "A",
+          "instant": true,
+          "range": false,
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
-          },
-          "instant": true,
-          "range": false
+          }
         }
       ],
-      "description": "One row per container instance (container_id) in range. In the panel editor, apply Transform > 'Labels to fields' to surface container_name, container_id, aws_ecs_container_started_at, aws_ecs_container_finished_at, aws_ecs_container_exit_code as columns; sort by started_at desc; add a threshold/value mapping to color exit_code red when != 0. This tells you WHY a container restarted, not just that it did (0 = clean exit, 137 = OOM-killed/SIGKILL, other = app crash).",
+      "description": "Labels-to-fields transform is now built in - no manual setup. Columns come straight from the metric's labels. NOTE: exit code / finished_at are only populated for containers that have actually STOPPED. For a healthy running container these will be blank - that is correct, not a bug. 137 = OOM-killed, 0 = clean exit, anything else = app crash.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -690,15 +721,63 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "aws_ecs_cluster_name": true,
+              "aws_ecs_task_arn": true,
+              "aws_ecs_docker_name": true,
+              "aws_ecs_container_image_id": true,
+              "aws_ecs_launchtype": true,
+              "aws_ecs_task_launch_type": true,
+              "aws_ecs_task_version": true,
+              "cloud_account_id": true,
+              "cloud_availability_zone": true,
+              "cloud_region": true,
+              "aws_ecs_container_pull_started_at": true,
+              "aws_ecs_container_pull_stopped_at": true,
+              "aws_ecs_service_name": true,
+              "container_id": false
+            },
+            "indexByName": {
+              "container_name": 0,
+              "aws_ecs_container_known_status": 1,
+              "aws_ecs_container_exit_code": 2,
+              "aws_ecs_container_started_at": 3,
+              "aws_ecs_container_finished_at": 4,
+              "aws_ecs_task_id": 5,
+              "container_id": 6
+            },
+            "renameByName": {
+              "container_name": "container",
+              "aws_ecs_container_known_status": "status",
+              "aws_ecs_container_exit_code": "exit code",
+              "aws_ecs_container_started_at": "started",
+              "aws_ecs_container_finished_at": "finished",
+              "aws_ecs_task_id": "task"
+            }
+          }
+        }
+      ]
     },
     {
       "id": 16,
-      "title": "Container CPU Reserved (vCPU)",
+      "title": "Container CPU Reserved (CPU units)",
       "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 16,
+        "h": 8,
+        "w": 4,
+        "x": 20,
         "y": 41
       },
       "type": "table",
@@ -727,7 +806,23 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            }
+          }
+        }
+      ]
     },
     {
       "id": 17,
@@ -736,7 +831,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 49
       },
       "type": "timeseries",
       "datasource": {
