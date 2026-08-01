@@ -126,7 +126,7 @@
         "x": 0,
         "y": 1
       },
-      "type": "bargauge",
+      "type": "table",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
@@ -134,7 +134,7 @@
       "targets": [
         {
           "expr": "100 * ecs_task_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
-          "legendFormat": "{{aws_ecs_task_id}}",
+          "legendFormat": "",
           "refId": "A",
           "instant": true,
           "range": false,
@@ -144,12 +144,17 @@
           }
         }
       ],
-      "description": "ecs_task_cpu_utilized_None is reported in CPU UNITS (1024 = 1 vCPU), NOT percent - that is what the _None suffix means. Raw value of 217 on a 2048-unit (2 vCPU) task is 10.6% utilization, not 217%. This panel divides utilized by reserved to get a true percentage. Bar gauge (not gauge) so it stays readable when task_id = All.",
+      "description": "100 * utilized / reserved. Colour steps: green <40, lime 40, yellow 60, orange 75, red 90. Sub-1% readings mean the task is heavily over-provisioned.",
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "min": 0,
-          "max": 100,
+          "decimals": 3,
+          "custom": {
+            "cellOptions": {
+              "type": "color-text"
+            },
+            "align": "auto"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -158,40 +163,73 @@
                 "value": null
               },
               {
+                "color": "#7FB800",
+                "value": 40
+              },
+              {
                 "color": "yellow",
-                "value": 70
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 75
               },
               {
                 "color": "red",
                 "value": 90
               }
             ]
-          }
+          },
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
       "options": {
-        "displayMode": "gradient",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+        "showHeader": true,
+        "footer": {
+          "show": false
+        }
+      },
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(aws_ecs_task_id|Value)$"
+            }
+          }
         },
-        "showUnfilled": true,
-        "minVizWidth": 8,
-        "minVizHeight": 16
-      }
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "aws_ecs_task_id": "task",
+              "Value": "CPU %"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "CPU %",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "id": 3,
-      "title": "Task CPU Usage (vCPU)",
+      "title": "Task CPU: Used vs Reserved (CPU units, log scale)",
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
+        "w": 10,
+        "x": 4,
         "y": 1
       },
       "type": "timeseries",
@@ -201,32 +239,81 @@
       },
       "targets": [
         {
-          "expr": "ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
-          "legendFormat": "{{aws_ecs_task_id}}",
+          "expr": "ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} * 1024",
+          "legendFormat": "used - {{aws_ecs_task_id}}",
           "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "reserved - {{aws_ecs_task_id}}",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           }
         }
       ],
-      "description": "Live vCPU consumption per task (gauge metric, already computed by the receiver - no rate() needed).",
+      "description": "Both series in CPU units (1024 = 1 vCPU) so they share an axis. LOG scale is essential here: used is single-digit units against 1024-4096 reserved, which on a linear axis flatlines at zero. The vertical gap between the two lines IS your headroom.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": {}
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1.4,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "reserved.*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    6
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {}
     },
     {
       "id": 4,
-      "title": "Task CPU Reserved (CPU units)",
+      "title": "Task CPU Headroom (unused CPU units)",
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
+        "w": 10,
+        "x": 14,
         "y": 1
       },
       "type": "timeseries",
@@ -236,7 +323,7 @@
       },
       "targets": [
         {
-          "expr": "ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} - (ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} * 1024)",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -245,11 +332,34 @@
           }
         }
       ],
-      "description": "ecs_task_cpu_reserved_None in CPU units: 1024 = 1 vCPU, 2048 = 2 vCPU. Flat by design - it only changes on a new task definition revision.",
+      "description": "Reserved minus used, in CPU units. This is what you'd reclaim by rightsizing. A line sitting near the reservation ceiling means almost nothing is being used.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": {}
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1.4,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": true,
+            "axisPlacement": "auto",
+            "axisLabel": ""
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1024
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -383,7 +493,7 @@
       "title": "Task Storage I/O (rate)",
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 15
       },
@@ -416,43 +526,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "Bps",
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "options": {}
-    },
-    {
-      "id": 9,
-      "title": "Task Info",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 15
-      },
-      "type": "table",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "targets": [
-        {
-          "expr": "ecs_task_cpu_onlines_Count{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
-          "legendFormat": "",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "instant": true,
-          "range": false
-        }
-      ],
-      "description": "Instant table for task identity/label reference - extend with aws_ecs_task_family, aws_ecs_task_revision, aws_ecs_launchtype via Transform > Organize fields.",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
           "custom": {}
         },
         "overrides": []
@@ -501,7 +574,35 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "custom": {}
+          "decimals": 3,
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1.4,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true,
+            "axisPlacement": "auto",
+            "axisLabel": ""
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -509,7 +610,7 @@
     },
     {
       "id": 12,
-      "title": "Container CPU Usage (vCPU) by container",
+      "title": "Container CPU Usage (mCPU)",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -523,7 +624,7 @@
       },
       "targets": [
         {
-          "expr": "container_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "expr": "container_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} * 1000",
           "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -532,11 +633,21 @@
           }
         }
       ],
-      "description": "",
+      "description": "Millicores (vCPU x 1000) - same convention Kubernetes uses. 6.8 mCPU reads far better than 0.0068 vCPU on a Y axis.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": {}
+          "decimals": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1.4,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true,
+            "axisPlacement": "auto",
+            "axisLabel": ""
+          }
         },
         "overrides": []
       },
@@ -661,7 +772,9 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": {}
+          "custom": {
+            "align": "auto"
+          }
         },
         "overrides": []
       },
@@ -674,12 +787,18 @@
           }
         },
         {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(container_name|Value)$"
+            }
+          }
+        },
+        {
           "id": "organize",
           "options": {
-            "excludeByName": {
-              "Time": true
-            },
             "renameByName": {
+              "container_name": "container",
               "Value": "instances"
             }
           }
@@ -691,7 +810,7 @@
       "title": "Container Lifecycle & Exit Codes",
       "gridPos": {
         "h": 8,
-        "w": 14,
+        "w": 12,
         "x": 6,
         "y": 41
       },
@@ -713,15 +832,52 @@
           }
         }
       ],
-      "description": "Labels-to-fields transform is now built in - no manual setup. Columns come straight from the metric's labels. NOTE: exit code / finished_at are only populated for containers that have actually STOPPED. For a healthy running container these will be blank - that is correct, not a bug. 137 = OOM-killed, 0 = clean exit, anything else = app crash.",
+      "description": "Five columns only. exit code / finished stay blank while status = RUNNING - that is correct, they populate only after a container stops. 137 = OOM-killed, 0 = clean, other = crash.",
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "custom": {}
+          "custom": {
+            "align": "auto",
+            "minWidth": 80
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "exit code"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "137": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
-      "options": {},
+      "options": {
+        "showHeader": true
+      },
       "transformations": [
         {
           "id": "labelsToFields",
@@ -730,42 +886,29 @@
           }
         },
         {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(container_name|aws_ecs_container_known_status|aws_ecs_container_exit_code|aws_ecs_container_started_at|aws_ecs_container_finished_at)$"
+            }
+          }
+        },
+        {
           "id": "organize",
           "options": {
-            "excludeByName": {
-              "Time": true,
-              "Value": true,
-              "aws_ecs_cluster_name": true,
-              "aws_ecs_task_arn": true,
-              "aws_ecs_docker_name": true,
-              "aws_ecs_container_image_id": true,
-              "aws_ecs_launchtype": true,
-              "aws_ecs_task_launch_type": true,
-              "aws_ecs_task_version": true,
-              "cloud_account_id": true,
-              "cloud_availability_zone": true,
-              "cloud_region": true,
-              "aws_ecs_container_pull_started_at": true,
-              "aws_ecs_container_pull_stopped_at": true,
-              "aws_ecs_service_name": true,
-              "container_id": false
-            },
             "indexByName": {
               "container_name": 0,
               "aws_ecs_container_known_status": 1,
               "aws_ecs_container_exit_code": 2,
               "aws_ecs_container_started_at": 3,
-              "aws_ecs_container_finished_at": 4,
-              "aws_ecs_task_id": 5,
-              "container_id": 6
+              "aws_ecs_container_finished_at": 4
             },
             "renameByName": {
               "container_name": "container",
               "aws_ecs_container_known_status": "status",
               "aws_ecs_container_exit_code": "exit code",
               "aws_ecs_container_started_at": "started",
-              "aws_ecs_container_finished_at": "finished",
-              "aws_ecs_task_id": "task"
+              "aws_ecs_container_finished_at": "finished"
             }
           }
         }
@@ -776,8 +919,8 @@
       "title": "Container CPU Reserved (CPU units)",
       "gridPos": {
         "h": 8,
-        "w": 4,
-        "x": 20,
+        "w": 6,
+        "x": 18,
         "y": 41
       },
       "type": "table",
@@ -802,7 +945,9 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": {}
+          "custom": {
+            "align": "auto"
+          }
         },
         "overrides": []
       },
@@ -815,10 +960,19 @@
           }
         },
         {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(container_name|Value)$"
+            }
+          }
+        },
+        {
           "id": "organize",
           "options": {
-            "excludeByName": {
-              "Time": true
+            "renameByName": {
+              "container_name": "container",
+              "Value": "CPU units"
             }
           }
         }
