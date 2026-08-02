@@ -144,30 +144,31 @@
           }
         }
       ],
-      "description": "Transform order matters: labelsToFields must run BEFORE filterFieldsByName, otherwise the labels aren't fields yet and the filter strips everything (that was the 'No data'). merge collapses the per-series frames into one table.",
+      "description": "Sorted highest-first. Colour bands: blue under 20% (over-provisioned), green 20-60, yellow 60-75, orange 75-90, red above 90. Blue rather than green for idle so a task that is barely doing anything does not read as 'healthy' at a glance.",
       "fieldConfig": {
         "defaults": {
-          "unit": "percent",
-          "decimals": 3,
           "custom": {
+            "align": "auto",
             "cellOptions": {
-              "type": "color-text"
+              "type": "auto"
             },
-            "align": "auto"
+            "inspect": false,
+            "filterable": false,
+            "minWidth": 90
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#3274D9",
                 "value": null
               },
               {
-                "color": "#7FB800",
-                "value": 40
+                "color": "green",
+                "value": 20
               },
               {
-                "color": "yellow",
+                "color": "#EAB839",
                 "value": 60
               },
               {
@@ -179,17 +180,76 @@
                 "value": 90
               }
             ]
-          },
-          "max": 100,
-          "min": 0
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "task"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "gradient",
+                  "applyToRowBg": false
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "showHeader": true,
+        "cellHeight": "sm",
         "footer": {
-          "show": false
-        }
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "CPU %",
+            "desc": true
+          }
+        ]
       },
       "transformations": [
         {
@@ -235,7 +295,7 @@
     },
     {
       "id": 3,
-      "title": "Task CPU: Used vs Reserved (CPU units)",
+      "title": "Task CPU: Used vs Reserved (vCPU)",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -249,7 +309,7 @@
       },
       "targets": [
         {
-          "expr": "ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} * 1024",
+          "expr": "ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
           "legendFormat": "used - {{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -258,7 +318,7 @@
           }
         },
         {
-          "expr": "ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / 1024",
           "legendFormat": "reserved - {{aws_ecs_task_id}}",
           "refId": "B",
           "datasource": {
@@ -267,11 +327,11 @@
           }
         }
       ],
-      "description": "Linear axis. Both series in CPU units (1024 = 1 vCPU). Log scale was removed - the real spread is only ~12x (about 167 used against 2048 reserved), which linear renders clearly. Log ticked at powers of ten and pushed the axis to 10K, wasting most of the panel.",
+      "description": "Both series in vCPU - same unit as the task definition. Reserved / 1024 converts CPU units to vCPU. Axis reads 0.5 / 1 / 2 vCPU instead of 1.0K / 2.0K / 4.0K.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 2,
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "linear",
@@ -280,7 +340,7 @@
             "showPoints": "never",
             "spanNulls": true,
             "axisPlacement": "auto",
-            "axisLabel": "",
+            "axisLabel": "vCPU",
             "axisSoftMin": 0
           },
           "min": 0
@@ -344,7 +404,7 @@
     },
     {
       "id": 4,
-      "title": "Task CPU Headroom (unused CPU units)",
+      "title": "Task CPU Headroom (unused vCPU)",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -358,7 +418,7 @@
       },
       "targets": [
         {
-          "expr": "ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} - (ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} * 1024)",
+          "expr": "(ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / 1024) - ecs_task_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -367,11 +427,11 @@
           }
         }
       ],
-      "description": "Reserved minus used, in CPU units. This is what you'd reclaim by rightsizing. A line sitting near the reservation ceiling means almost nothing is being used.",
+      "description": "Reserved minus used, in vCPU - what rightsizing the task definition would reclaim.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 0,
+          "decimals": 2,
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "linear",
@@ -380,7 +440,7 @@
             "showPoints": "never",
             "spanNulls": true,
             "axisPlacement": "auto",
-            "axisLabel": ""
+            "axisLabel": "vCPU"
           },
           "thresholds": {
             "mode": "absolute",
@@ -698,7 +758,7 @@
     },
     {
       "id": 12,
-      "title": "Container CPU Usage (mCPU)",
+      "title": "Container CPU Usage (vCPU)",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -712,7 +772,7 @@
       },
       "targets": [
         {
-          "expr": "container_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} * 1000",
+          "expr": "container_cpu_usage_vcpu_vCPU{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
           "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -721,11 +781,11 @@
           }
         }
       ],
-      "description": "Millicores (vCPU x 1000) - same convention Kubernetes uses. 6.8 mCPU reads far better than 0.0068 vCPU on a Y axis.",
+      "description": "vCPU, consistent with the task-level panels.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 3,
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "linear",
@@ -734,7 +794,7 @@
             "showPoints": "never",
             "spanNulls": true,
             "axisPlacement": "auto",
-            "axisLabel": ""
+            "axisLabel": "vCPU"
           }
         },
         "overrides": []
@@ -909,17 +969,94 @@
           "range": false
         }
       ],
-      "description": "Distinct container_id values seen for each container over the dashboard's selected time range (uses $__range, so it follows the time picker instead of a hardcoded window). 1 = no restart. A value of N means N-1 restarts happened, because every restart gets a fresh container_id in ECS/Docker.",
+      "description": "1 = no restart (green). 2-3 = orange, 4+ = red. Sorted so anything that restarted floats to the top.",
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "custom": {
-            "align": "auto"
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "minWidth": 80
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
+            ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "container"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instances"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "custom.width",
+                "value": 95
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          }
+        ]
       },
-      "options": {},
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "instances",
+            "desc": true
+          }
+        ]
+      },
       "transformations": [
         {
           "id": "labelsToFields",
@@ -952,7 +1089,7 @@
     },
     {
       "id": 115,
-      "title": "Container Lifecycle & Exit Codes",
+      "title": "Container Image & Lifecycle",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -966,7 +1103,7 @@
       },
       "targets": [
         {
-          "expr": "last_over_time(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[$__range])",
+          "expr": "last_over_time(container_duration_Seconds{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[$__range])",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -977,11 +1114,16 @@
           }
         }
       ],
-      "description": "The receiver emits the label as aws_ecs_container_know_status - 'know', NOT 'known'. That typo is upstream in awsecscontainermetricsreceiver; the filter now accepts both spellings. exit code and finished stay EMPTY for RUNNING containers by design - those labels only appear once a container has stopped. container_id changes on every restart, which is what the Instances panel counts.",
+      "description": "Status colour-coded, exit codes translated to plain English (137 OOM, 139 segv, 143 term). Blank exit code renders as a dash. Long image strings are truncated - click the cell to inspect the full value. Columns are filterable.",
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "align": "auto",
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true,
+            "filterable": true,
             "minWidth": 80
           }
         },
@@ -989,9 +1131,107 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "container"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "image"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              },
+              {
+                "id": "custom.inspect",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tag"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8AB8FF"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 105
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "RUNNING": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "STOPPED": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "PENDING": {
+                        "color": "yellow",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "exit code"
             },
             "properties": [
+              {
+                "id": "custom.width",
+                "value": 95
+              },
               {
                 "id": "custom.cellOptions",
                 "value": {
@@ -1006,22 +1246,88 @@
                     "options": {
                       "0": {
                         "color": "green",
+                        "text": "0 clean",
                         "index": 0
                       },
                       "137": {
                         "color": "red",
+                        "text": "137 OOM",
                         "index": 1
+                      },
+                      "139": {
+                        "color": "red",
+                        "text": "139 segv",
+                        "index": 2
+                      },
+                      "143": {
+                        "color": "orange",
+                        "text": "143 term",
+                        "index": 3
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "empty",
+                      "result": {
+                        "text": "\u2014",
+                        "color": "text",
+                        "index": 4
                       }
                     }
                   }
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^(started|finished)$/"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "image digest"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              },
+              {
+                "id": "custom.inspect",
+                "value": true
+              }
+            ]
           }
         ]
       },
       "options": {
-        "showHeader": true
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "container",
+            "desc": false
+          }
+        ]
       },
       "transformations": [
         {
@@ -1038,7 +1344,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(container_name|aws_ecs_container_know_status|aws_ecs_container_known_status|aws_ecs_container_exit_code|aws_ecs_container_started_at|aws_ecs_container_finished_at|container_id)$"
+              "pattern": "^(container_name|aws_ecs_container_know_status|aws_ecs_container_known_status|container_image_name|container_image_tag|aws_ecs_container_image_name|aws_ecs_container_image_tag|image_name|image_tag|image|aws_ecs_container_image|aws_ecs_container_image_id|aws_ecs_container_exit_code|aws_ecs_container_started_at|aws_ecs_container_finished_at)$"
             }
           }
         },
@@ -1047,21 +1353,37 @@
           "options": {
             "indexByName": {
               "container_name": 0,
-              "aws_ecs_container_know_status": 1,
-              "aws_ecs_container_known_status": 2,
-              "aws_ecs_container_exit_code": 3,
-              "aws_ecs_container_started_at": 4,
-              "aws_ecs_container_finished_at": 5,
-              "container_id": 6
+              "container_image_name": 1,
+              "aws_ecs_container_image_name": 2,
+              "image_name": 3,
+              "image": 4,
+              "aws_ecs_container_image": 5,
+              "container_image_tag": 6,
+              "aws_ecs_container_image_tag": 7,
+              "image_tag": 8,
+              "aws_ecs_container_know_status": 9,
+              "aws_ecs_container_known_status": 10,
+              "aws_ecs_container_exit_code": 11,
+              "aws_ecs_container_started_at": 12,
+              "aws_ecs_container_finished_at": 13,
+              "aws_ecs_container_image_id": 14
             },
             "renameByName": {
               "container_name": "container",
+              "container_image_name": "image",
+              "aws_ecs_container_image_name": "image",
+              "image_name": "image",
+              "image": "image",
+              "aws_ecs_container_image": "image",
+              "container_image_tag": "tag",
+              "aws_ecs_container_image_tag": "tag",
+              "image_tag": "tag",
               "aws_ecs_container_know_status": "status",
               "aws_ecs_container_known_status": "status",
               "aws_ecs_container_exit_code": "exit code",
               "aws_ecs_container_started_at": "started",
               "aws_ecs_container_finished_at": "finished",
-              "container_id": "container_id"
+              "aws_ecs_container_image_id": "image digest"
             }
           }
         }
@@ -1069,7 +1391,7 @@
     },
     {
       "id": 16,
-      "title": "Container CPU Reserved (CPU units)",
+      "title": "Container CPU Reserved (vCPU)",
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -1083,28 +1405,94 @@
       },
       "targets": [
         {
-          "expr": "container_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}",
+          "expr": "container_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} / 1024",
           "legendFormat": "{{container_name}}",
           "refId": "A",
+          "instant": true,
+          "range": false,
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
-          },
-          "instant": true,
-          "range": false
+          }
         }
       ],
-      "description": "After labelsToFields, a RAW metric query keeps its numeric field named after the metric (container_cpu_reserved_None), NOT 'Value'. Only aggregated queries like count() fall back to 'Value'. The filter now accepts both, which is why the number was missing before.",
+      "description": "Per-container reservation in vCPU - 1.5 reads better than 1.54K CPU units. Division happens in PromQL, so the numeric field is named 'Value' and the filter matches it.",
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "custom": {
-            "align": "auto"
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "minWidth": 80
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "container"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vCPU"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "custom.width",
+                "value": 95
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8AB8FF"
+                }
+              }
+            ]
+          }
+        ]
       },
-      "options": {},
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "vCPU",
+            "desc": true
+          }
+        ]
+      },
       "transformations": [
         {
           "id": "labelsToFields",
@@ -1120,7 +1508,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(container_name|Value|container_cpu_reserved_None)$"
+              "pattern": "^(container_name|Value)$"
             }
           }
         },
@@ -1129,8 +1517,7 @@
           "options": {
             "renameByName": {
               "container_name": "container",
-              "Value": "CPU units",
-              "container_cpu_reserved_None": "CPU units"
+              "Value": "vCPU"
             }
           }
         }
