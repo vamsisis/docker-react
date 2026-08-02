@@ -904,8 +904,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 33
+        "x": 0,
+        "y": 41
       },
       "type": "timeseries",
       "datasource": {
@@ -949,7 +949,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 41
+        "y": 49
       },
       "type": "table",
       "datasource": {
@@ -1147,7 +1147,7 @@
         "h": 8,
         "w": 12,
         "x": 6,
-        "y": 41
+        "y": 49
       },
       "type": "table",
       "datasource": {
@@ -1434,7 +1434,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 41
+        "y": 49
       },
       "type": "table",
       "datasource": {
@@ -1565,10 +1565,10 @@
       "id": 17,
       "title": "Container Storage I/O (rate)",
       "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 49
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 41
       },
       "type": "timeseries",
       "datasource": {
@@ -1604,6 +1604,83 @@
         "overrides": []
       },
       "options": {}
+    },
+    {
+      "id": 116,
+      "title": "Container Memory Utilization (% of task limit)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 33
+      },
+      "targets": [
+        {
+          "expr": "100 * container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} / on(aws_ecs_task_id) group_left ecs_task_memory_usage_limit_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "description": "Each container's memory as a percentage of the TASK memory limit - the direct counterpart to 'Container CPU Utilization (% of task reserved)'.\n\nDenominator is the task limit, not a per-container limit, because most of your containers have no individual memory reservation set. So the percentages across containers in one task sum to the task's own utilization - which is what you want for spotting which container is eating the task's memory.\n\nIf this comes back empty, the on(aws_ecs_task_id) group_left join is not matching - the GiB panel beside it still works regardless.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1.4,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true,
+            "axisPlacement": "auto",
+            "axisLabel": ""
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "orange",
+                "value": 85
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
     }
   ]
 }
