@@ -1,14 +1,14 @@
 {
   "id": null,
   "uid": "ecs-otel-fargate",
-  "title": "ECS Fargate + OTel Sidecar - Container & Task Metrics",
+  "title": "ECS Fargate - Task & Container Resource Usage",
   "tags": [
     "ecs",
     "fargate",
     "otel",
     "prometheus"
   ],
-  "timezone": "browser",
+  "timezone": "America/Chicago",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "1m",
@@ -106,7 +106,7 @@
   "panels": [
     {
       "id": 1,
-      "title": "Task Overview  (ecs_task_* - one series per running task)",
+      "title": "Task Health & Capacity  \u2014  whole task (all containers combined)",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -119,7 +119,7 @@
     },
     {
       "id": 2,
-      "title": "Task CPU Utilization (% of reserved)",
+      "title": "CPU Used vs Allocated (%)",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -295,7 +295,7 @@
     },
     {
       "id": 3,
-      "title": "Task CPU: Used vs Reserved (vCPU)",
+      "title": "CPU: Actual vs Allocated",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -404,7 +404,7 @@
     },
     {
       "id": 4,
-      "title": "Task CPU Headroom (unused vCPU)",
+      "title": "Spare CPU (unused, allocated but idle)",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -462,7 +462,7 @@
     },
     {
       "id": 5,
-      "title": "Task Memory: Used vs Reserved",
+      "title": "Memory: Actual vs Allocated",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -559,7 +559,7 @@
     },
     {
       "id": 6,
-      "title": "Task Memory Utilization (%)",
+      "title": "Memory Used vs Allocated (%)",
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -594,7 +594,7 @@
     },
     {
       "id": 7,
-      "title": "Task Network Throughput",
+      "title": "Network In / Out",
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -638,7 +638,7 @@
     },
     {
       "id": 8,
-      "title": "Task Storage I/O (rate)",
+      "title": "Disk Read / Write",
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -682,7 +682,7 @@
     },
     {
       "id": 10,
-      "title": "Container Detail  (container_* - one series per container within selected task(s))",
+      "title": "Container Breakdown  \u2014  which container inside the task is using what",
       "type": "row",
       "collapsed": false,
       "gridPos": {
@@ -695,7 +695,7 @@
     },
     {
       "id": 11,
-      "title": "Container CPU Utilization (% of task reserved)",
+      "title": "CPU per Container (% of task allocation)",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -758,7 +758,7 @@
     },
     {
       "id": 12,
-      "title": "Container CPU Usage (vCPU)",
+      "title": "CPU per Container (vCPU)",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -803,7 +803,7 @@
     },
     {
       "id": 13,
-      "title": "Container Memory Usage by container",
+      "title": "Memory per Container (GiB)",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -900,7 +900,7 @@
     },
     {
       "id": 14,
-      "title": "Container Network Throughput by container",
+      "title": "Network per Container",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -944,7 +944,7 @@
     },
     {
       "id": 15,
-      "title": "Container Restarts (in selected range)",
+      "title": "Restarts per Container",
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -1043,7 +1043,7 @@
                     "type": "value",
                     "options": {
                       "0": {
-                        "text": "none - stable",
+                        "text": "No restarts",
                         "color": "green",
                         "index": 0
                       },
@@ -1080,7 +1080,7 @@
                       "from": 6,
                       "to": 9999,
                       "result": {
-                        "text": "6+ RESTART LOOP",
+                        "text": "6+ restarts - looping",
                         "color": "red",
                         "index": 6
                       }
@@ -1142,7 +1142,7 @@
     },
     {
       "id": 115,
-      "title": "Container Image & Lifecycle",
+      "title": "Container Status, Image & Exit Codes",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -1167,7 +1167,7 @@
           }
         }
       ],
-      "description": "Shows EVERY container seen in the selected time range, including ones that have since stopped.\n\nTwo things make that work: 'group by' forces one uniform label set so running containers (no exit_code / finished_at) and stopped ones render in the same table; 'last_over_time(...[$__range])' looks back across the whole window so a container that stopped emitting is still found. A plain instant query evaluates at 'now' and drops stopped containers entirely.\n\nThis panel intentionally IGNORES the Container variable - a stopped container often is not in that dropdown's current value list, so filtering by it would hide exactly what you want to see. Use the column filter in the table header to narrow instead.\n\nWiden the time picker to see further back: at 'Last 30 minutes' you only see containers active in the last 30 minutes.",
+      "description": "Shows EVERY container seen in the selected time range, including ones that have since stopped.\n\nTwo things make that work: 'group by' forces one uniform label set so running containers (no exit_code / finished_at) and stopped ones render in the same table; 'last_over_time(...[$__range])' looks back across the whole window so a container that stopped emitting is still found. A plain instant query evaluates at 'now' and drops stopped containers entirely.\n\nThis panel intentionally IGNORES the Container variable - a stopped container often is not in that dropdown's current value list, so filtering by it would hide exactly what you want to see. Use the column filter in the table header to narrow instead.\n\nWiden the time picker to see further back: at 'Last 30 minutes' you only see containers active in the last 30 minutes.\n\nTimestamps: the receiver emits started_at / finished_at as ISO strings in UTC. A convertFieldType transform turns them into real time fields so Grafana can localise them; the dashboard timezone is set to America/Chicago, so they render in Central and follow the CST/CDT switch automatically. Change it under Dashboard settings > General > Timezone if your team is elsewhere.",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -1343,7 +1343,11 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 180
+                "value": 185
+              },
+              {
+                "id": "unit",
+                "value": "time:YYYY-MM-DD HH:mm:ss"
               },
               {
                 "id": "mappings",
@@ -1403,6 +1407,22 @@
           }
         },
         {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "aws_ecs_container_started_at",
+                "destinationType": "time"
+              },
+              {
+                "targetField": "aws_ecs_container_finished_at",
+                "destinationType": "time"
+              }
+            ]
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "indexByName": {
@@ -1429,7 +1449,7 @@
     },
     {
       "id": 16,
-      "title": "Container CPU Reserved (vCPU)",
+      "title": "CPU Allocated per Container",
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -1563,7 +1583,7 @@
     },
     {
       "id": 17,
-      "title": "Container Storage I/O (rate)",
+      "title": "Disk per Container",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -1607,7 +1627,7 @@
     },
     {
       "id": 116,
-      "title": "Container Memory Utilization (% of task limit)",
+      "title": "Memory per Container (% of task limit)",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
