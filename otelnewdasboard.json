@@ -1103,7 +1103,7 @@
       },
       "targets": [
         {
-          "expr": "last_over_time(container_duration_Seconds{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[$__range])",
+          "expr": "group by (container_name, container_image_name, container_image_tag, aws_ecs_container_know_status, aws_ecs_container_exit_code, aws_ecs_container_started_at, aws_ecs_container_finished_at) (container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"})",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1114,7 +1114,7 @@
           }
         }
       ],
-      "description": "Status colour-coded, exit codes translated to plain English (137 OOM, 139 segv, 143 term). Blank exit code renders as a dash. Long image strings are truncated - click the cell to inspect the full value. Columns are filterable.",
+      "description": "Uses 'group by' in PromQL rather than a raw selector. That forces every series to carry the SAME label set - a label a container lacks comes back empty instead of the field being absent. Previously running containers (no exit_code / finished_at) and stopped ones had different schemas, merge could not reconcile them, and only the stopped container rendered. Label names confirmed from Explore: container_image_name, container_image_tag, aws_ecs_container_know_status (yes, 'know' not 'known'). Sorted so STOPPED sorts above RUNNING.",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -1125,7 +1125,8 @@
             "inspect": true,
             "filterable": true,
             "minWidth": 80
-          }
+          },
+          "noValue": "\u2014"
         },
         "overrides": [
           {
@@ -1136,7 +1137,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 190
+                "value": 210
               }
             ]
           },
@@ -1148,7 +1149,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 300
+                "value": 280
               },
               {
                 "id": "custom.inspect",
@@ -1230,7 +1231,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 95
+                "value": 100
               },
               {
                 "id": "custom.cellOptions",
@@ -1289,23 +1290,23 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 175
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "image digest"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 150
+                "value": 180
               },
               {
-                "id": "custom.inspect",
-                "value": true
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "empty",
+                      "result": {
+                        "text": "\u2014",
+                        "color": "text",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -1324,7 +1325,7 @@
         },
         "sortBy": [
           {
-            "displayName": "container",
+            "displayName": "status",
             "desc": false
           }
         ]
@@ -1344,7 +1345,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(container_name|aws_ecs_container_know_status|aws_ecs_container_known_status|container_image_name|container_image_tag|aws_ecs_container_image_name|aws_ecs_container_image_tag|image_name|image_tag|image|aws_ecs_container_image|aws_ecs_container_image_id|aws_ecs_container_exit_code|aws_ecs_container_started_at|aws_ecs_container_finished_at)$"
+              "pattern": "^(container_name|container_image_name|container_image_tag|aws_ecs_container_know_status|aws_ecs_container_exit_code|aws_ecs_container_started_at|aws_ecs_container_finished_at)$"
             }
           }
         },
@@ -1354,36 +1355,20 @@
             "indexByName": {
               "container_name": 0,
               "container_image_name": 1,
-              "aws_ecs_container_image_name": 2,
-              "image_name": 3,
-              "image": 4,
-              "aws_ecs_container_image": 5,
-              "container_image_tag": 6,
-              "aws_ecs_container_image_tag": 7,
-              "image_tag": 8,
-              "aws_ecs_container_know_status": 9,
-              "aws_ecs_container_known_status": 10,
-              "aws_ecs_container_exit_code": 11,
-              "aws_ecs_container_started_at": 12,
-              "aws_ecs_container_finished_at": 13,
-              "aws_ecs_container_image_id": 14
+              "container_image_tag": 2,
+              "aws_ecs_container_know_status": 3,
+              "aws_ecs_container_exit_code": 4,
+              "aws_ecs_container_started_at": 5,
+              "aws_ecs_container_finished_at": 6
             },
             "renameByName": {
               "container_name": "container",
               "container_image_name": "image",
-              "aws_ecs_container_image_name": "image",
-              "image_name": "image",
-              "image": "image",
-              "aws_ecs_container_image": "image",
               "container_image_tag": "tag",
-              "aws_ecs_container_image_tag": "tag",
-              "image_tag": "tag",
               "aws_ecs_container_know_status": "status",
-              "aws_ecs_container_known_status": "status",
               "aws_ecs_container_exit_code": "exit code",
               "aws_ecs_container_started_at": "started",
-              "aws_ecs_container_finished_at": "finished",
-              "aws_ecs_container_image_id": "image digest"
+              "aws_ecs_container_finished_at": "finished"
             }
           }
         }
