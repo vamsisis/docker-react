@@ -1,6 +1,6 @@
 {
   "id": null,
-  "uid": null,
+  "uid": "ecs-otel-fargate",
   "title": "ECS Fargate + OTel Sidecar - Container & Task Metrics",
   "tags": [
     "ecs",
@@ -235,7 +235,7 @@
     },
     {
       "id": 3,
-      "title": "Task CPU: Used vs Reserved (CPU units, log scale)",
+      "title": "Task CPU: Used vs Reserved (CPU units)",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -267,7 +267,7 @@
           }
         }
       ],
-      "description": "Both series in CPU units (1024 = 1 vCPU) so they share an axis. LOG scale is essential here: used is single-digit units against 1024-4096 reserved, which on a linear axis flatlines at zero. The vertical gap between the two lines IS your headroom. Reserved is drawn as an orange dashed line, used as solid green with light fill, so the gap between them reads as headroom at a glance.",
+      "description": "Linear axis. Both series in CPU units (1024 = 1 vCPU). Log scale was removed - the real spread is only ~12x (about 167 used against 2048 reserved), which linear renders clearly. Log ticked at powers of ten and pushed the axis to 10K, wasting most of the panel.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -276,16 +276,14 @@
             "drawStyle": "line",
             "lineInterpolation": "linear",
             "lineWidth": 1.4,
-            "fillOpacity": 0,
+            "fillOpacity": 8,
             "showPoints": "never",
             "spanNulls": true,
             "axisPlacement": "auto",
             "axisLabel": "",
-            "scaleDistribution": {
-              "type": "log",
-              "log": 10
-            }
-          }
+            "axisSoftMin": 0
+          },
+          "min": 0
         },
         "overrides": [
           {
@@ -979,7 +977,7 @@
           }
         }
       ],
-      "description": "Five columns only. exit code / finished stay blank while status = RUNNING - that is correct, they populate only after a container stops. 137 = OOM-killed, 0 = clean, other = crash.",
+      "description": "The receiver emits the label as aws_ecs_container_know_status - 'know', NOT 'known'. That typo is upstream in awsecscontainermetricsreceiver; the filter now accepts both spellings. exit code and finished stay EMPTY for RUNNING containers by design - those labels only appear once a container has stopped. container_id changes on every restart, which is what the Instances panel counts.",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -1040,7 +1038,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(container_name|aws_ecs_container_known_status|aws_ecs_container_exit_code|aws_ecs_container_started_at|aws_ecs_container_finished_at)$"
+              "pattern": "^(container_name|aws_ecs_container_know_status|aws_ecs_container_known_status|aws_ecs_container_exit_code|aws_ecs_container_started_at|aws_ecs_container_finished_at|container_id)$"
             }
           }
         },
@@ -1049,17 +1047,21 @@
           "options": {
             "indexByName": {
               "container_name": 0,
-              "aws_ecs_container_known_status": 1,
-              "aws_ecs_container_exit_code": 2,
-              "aws_ecs_container_started_at": 3,
-              "aws_ecs_container_finished_at": 4
+              "aws_ecs_container_know_status": 1,
+              "aws_ecs_container_known_status": 2,
+              "aws_ecs_container_exit_code": 3,
+              "aws_ecs_container_started_at": 4,
+              "aws_ecs_container_finished_at": 5,
+              "container_id": 6
             },
             "renameByName": {
               "container_name": "container",
+              "aws_ecs_container_know_status": "status",
               "aws_ecs_container_known_status": "status",
               "aws_ecs_container_exit_code": "exit code",
               "aws_ecs_container_started_at": "started",
-              "aws_ecs_container_finished_at": "finished"
+              "aws_ecs_container_finished_at": "finished",
+              "container_id": "container_id"
             }
           }
         }
@@ -1092,7 +1094,7 @@
           "range": false
         }
       ],
-      "description": "Expect empty unless per-container CPU limits are set in the task definition.",
+      "description": "After labelsToFields, a RAW metric query keeps its numeric field named after the metric (container_cpu_reserved_None), NOT 'Value'. Only aggregated queries like count() fall back to 'Value'. The filter now accepts both, which is why the number was missing before.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -1118,7 +1120,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "pattern": "^(container_name|Value)$"
+              "pattern": "^(container_name|Value|container_cpu_reserved_None)$"
             }
           }
         },
@@ -1127,7 +1129,8 @@
           "options": {
             "renameByName": {
               "container_name": "container",
-              "Value": "CPU units"
+              "Value": "CPU units",
+              "container_cpu_reserved_None": "CPU units"
             }
           }
         }
