@@ -944,7 +944,7 @@
     },
     {
       "id": 15,
-      "title": "Container Instances in Selected Range",
+      "title": "Container Restarts (in selected range)",
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -958,18 +958,18 @@
       },
       "targets": [
         {
-          "expr": "count by (container_name) (count by (container_name, container_id) (last_over_time(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[$__range])))",
+          "expr": "count by (container_name) (count by (container_name, container_id) (last_over_time(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}[$__range]))) - 1",
           "legendFormat": "{{container_name}}",
           "refId": "A",
+          "instant": true,
+          "range": false,
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
-          },
-          "instant": true,
-          "range": false
+          }
         }
       ],
-      "description": "1 = no restart (green). 2-3 = orange, 4+ = red. Sorted so anything that restarted floats to the top.",
+      "description": "Restart count per container over the selected time range, written out in plain English so nobody has to remember what a bare number means.\n\nHow it works: ECS assigns a NEW container_id every time a container starts. Counting distinct container_ids and subtracting 1 (the original start) gives the number of restarts. There is no native restart metric in this receiver, so ID churn is the signal.\n\ngreen = none, orange = 1-2, red = 3+, and 6 or more reads as RESTART LOOP.\n\nScoped to the time picker: at 'Last 30 minutes' you only see restarts within those 30 minutes. Widen the range to catch older ones.",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -977,7 +977,8 @@
             "cellOptions": {
               "type": "auto"
             },
-            "minWidth": 80
+            "minWidth": 80,
+            "filterable": true
           },
           "thresholds": {
             "mode": "absolute",
@@ -988,11 +989,11 @@
               },
               {
                 "color": "orange",
-                "value": 2
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 4
+                "value": 3
               }
             ]
           }
@@ -1006,23 +1007,23 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 190
+                "value": 210
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "instances"
+              "options": "restarts"
             },
             "properties": [
               {
                 "id": "custom.align",
-                "value": "right"
+                "value": "left"
               },
               {
                 "id": "custom.width",
-                "value": 95
+                "value": 175
               },
               {
                 "id": "decimals",
@@ -1034,6 +1035,58 @@
                   "type": "color-background",
                   "mode": "basic"
                 }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "none - stable",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "1 restart",
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "2": {
+                        "text": "2 restarts",
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "3": {
+                        "text": "3 restarts",
+                        "color": "red",
+                        "index": 3
+                      },
+                      "4": {
+                        "text": "4 restarts",
+                        "color": "red",
+                        "index": 4
+                      },
+                      "5": {
+                        "text": "5 restarts",
+                        "color": "red",
+                        "index": 5
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 6,
+                      "to": 9999,
+                      "result": {
+                        "text": "6+ RESTART LOOP",
+                        "color": "red",
+                        "index": 6
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -1052,7 +1105,7 @@
         },
         "sortBy": [
           {
-            "displayName": "instances",
+            "displayName": "restarts",
             "desc": true
           }
         ]
@@ -1081,7 +1134,7 @@
           "options": {
             "renameByName": {
               "container_name": "container",
-              "Value": "instances"
+              "Value": "restarts"
             }
           }
         }
@@ -1103,7 +1156,7 @@
       },
       "targets": [
         {
-          "expr": "group by (container_name, container_image_name, container_image_tag, aws_ecs_container_know_status, aws_ecs_container_exit_code, aws_ecs_container_started_at, aws_ecs_container_finished_at) (container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"})",
+          "expr": "group by (container_name, container_image_name, container_image_tag, aws_ecs_container_know_status, aws_ecs_container_exit_code, aws_ecs_container_started_at, aws_ecs_container_finished_at) (last_over_time(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}[$__range]))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1114,7 +1167,7 @@
           }
         }
       ],
-      "description": "Uses 'group by' in PromQL rather than a raw selector. That forces every series to carry the SAME label set - a label a container lacks comes back empty instead of the field being absent. Previously running containers (no exit_code / finished_at) and stopped ones had different schemas, merge could not reconcile them, and only the stopped container rendered. Label names confirmed from Explore: container_image_name, container_image_tag, aws_ecs_container_know_status (yes, 'know' not 'known'). Sorted so STOPPED sorts above RUNNING.",
+      "description": "Shows EVERY container seen in the selected time range, including ones that have since stopped.\n\nTwo things make that work: 'group by' forces one uniform label set so running containers (no exit_code / finished_at) and stopped ones render in the same table; 'last_over_time(...[$__range])' looks back across the whole window so a container that stopped emitting is still found. A plain instant query evaluates at 'now' and drops stopped containers entirely.\n\nThis panel intentionally IGNORES the Container variable - a stopped container often is not in that dropdown's current value list, so filtering by it would hide exactly what you want to see. Use the column filter in the table header to narrow instead.\n\nWiden the time picker to see further back: at 'Last 30 minutes' you only see containers active in the last 30 minutes.",
       "fieldConfig": {
         "defaults": {
           "custom": {
