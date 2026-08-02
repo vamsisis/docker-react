@@ -133,7 +133,7 @@
       },
       "targets": [
         {
-          "expr": "100 * ecs_task_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "(rate(ecs_task_cpu_usage_total_Nanoseconds{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}[5m]) / (ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} * 1e9)) * 100",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -144,7 +144,7 @@
           }
         }
       ],
-      "description": "Sorted highest-first. Colour bands: blue under 20% (over-provisioned), green 20-60, yellow 60-75, orange 75-90, red above 90. Blue rather than green for idle so a task that is barely doing anything does not read as 'healthy' at a glance.",
+      "description": "Mirrors alert ecs_cpu_alerts / TaskCPUUsageAbove{80,85} VERBATIM - same expression the rule evaluates, so whatever number pages you is the number on this panel.\n\nNote the values are very small (~0.008 for a task at 8% CPU). That is because the rule divides by ecs_task_cpu_reserved_None * 1e9, and reserved_None is in CPU UNITS (1024 = 1 vCPU) rather than cores. This panel is deliberately NOT corrected - it exists to match the alert. Use 'CPU: Actual vs Allocated' and 'Spare CPU' beside it for the true operational picture.",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -160,27 +160,24 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#3274D9",
+                "color": "green",
                 "value": null
               },
               {
-                "color": "green",
-                "value": 20
-              },
-              {
                 "color": "#EAB839",
-                "value": 60
-              },
-              {
-                "color": "orange",
                 "value": 75
               },
               {
+                "color": "orange",
+                "value": 80
+              },
+              {
                 "color": "red",
-                "value": 90
+                "value": 85
               }
             ]
-          }
+          },
+          "decimals": 5
         },
         "overrides": [
           {
@@ -573,7 +570,7 @@
       },
       "targets": [
         {
-          "expr": "100 * ecs_task_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / ecs_task_memory_usage_limit_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "(ecs_task_memory_utilized_Megabytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"} / ecs_task_memory_reserved_Megabytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}) * 100",
           "legendFormat": "{{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -582,11 +579,32 @@
           }
         }
       ],
-      "description": "Derived: usage_Bytes / usage_limit_Bytes * 100.",
+      "description": "MATCHES alert ecs_memory_alerts / TaskMemoryUsageAbove{75,80,85} exactly: memory_utilized_Megabytes / memory_reserved_Megabytes.\n\nPreviously this used memory_usage_Bytes / memory_usage_limit_Bytes. That reads HIGHER because usage includes page cache while utilized does not - so an alert could fire at 80% utilized while this panel showed a very different number and the on-call engineer would dismiss it as false.\n\nThresholds: yellow 75 (Warning/15m), orange 80 (High/5m), red 85 (critical/5m).",
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "custom": {}
+          "custom": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 75
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
         },
         "overrides": []
       },
@@ -709,7 +727,7 @@
       },
       "targets": [
         {
-          "expr": "100 * container_cpu_utilized_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} / on(aws_ecs_task_id) group_left ecs_task_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "(rate(container_cpu_usage_total_Nanoseconds{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}[5m]) / (container_cpu_reserved_None{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} * 1e9)) * 100",
           "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -718,11 +736,11 @@
           }
         }
       ],
-      "description": "container_cpu_utilized_None is also in CPU units, not percent. Divided here by the parent task's reserved units to get a real percentage. If this returns nothing, the join label may differ - fall back to the raw container_cpu_usage_vcpu_vCPU panel beside it.",
+      "description": "Mirrors alerts ContainerCPUUsageAbove75 and the rule at line 105 VERBATIM, so the panel shows exactly what the alert evaluates.\n\nSame note as the task panel: values are ~1024x smaller than true utilisation because reserved_None is in CPU units, not cores. Left uncorrected on purpose so alert and panel agree.",
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 3,
+          "decimals": 5,
           "min": 0,
           "custom": {
             "drawStyle": "line",
@@ -742,12 +760,16 @@
                 "value": null
               },
               {
-                "color": "yellow",
-                "value": 60
+                "color": "#EAB839",
+                "value": 75
+              },
+              {
+                "color": "orange",
+                "value": 80
               },
               {
                 "color": "red",
-                "value": 90
+                "value": 85
               }
             ]
           }
@@ -1627,7 +1649,7 @@
     },
     {
       "id": 116,
-      "title": "Memory per Container (% of task limit)",
+      "title": "Memory per Container (% of container limit)",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -1641,7 +1663,7 @@
       },
       "targets": [
         {
-          "expr": "100 * container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} / on(aws_ecs_task_id) group_left ecs_task_memory_usage_limit_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\"}",
+          "expr": "(container_memory_usage_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"} / container_memory_usage_limit_Bytes{aws_ecs_cluster_name=~\"$cluster\", aws_ecs_task_id=~\"$task_id\", container_name=~\"$container_name\"}) * 100",
           "legendFormat": "{{container_name}} - {{aws_ecs_task_id}}",
           "refId": "A",
           "datasource": {
@@ -1650,7 +1672,7 @@
           }
         }
       ],
-      "description": "Each container's memory as a percentage of the TASK memory limit - the direct counterpart to 'Container CPU Utilization (% of task reserved)'.\n\nDenominator is the task limit, not a per-container limit, because most of your containers have no individual memory reservation set. So the percentages across containers in one task sum to the task's own utilization - which is what you want for spotting which container is eating the task's memory.\n\nIf this comes back empty, the on(aws_ecs_task_id) group_left join is not matching - the GiB panel beside it still works regardless.",
+      "description": "MATCHES alerts ContainerMemoryUsageAbove{75,80,85} exactly: container_memory_usage_Bytes / container_memory_usage_limit_Bytes.\n\nChanged from the TASK limit to the CONTAINER limit so this panel and the alert compute the same number.\n\nThresholds: yellow 75, orange 80, red 85.",
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -1675,15 +1697,15 @@
               },
               {
                 "color": "#EAB839",
-                "value": 70
+                "value": 75
               },
               {
                 "color": "orange",
-                "value": 85
+                "value": 80
               },
               {
                 "color": "red",
-                "value": 95
+                "value": 85
               }
             ]
           }
